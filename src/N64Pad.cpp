@@ -19,16 +19,14 @@
 
 #include "N64Pad.h"
 
-N64Pad::N64Pad () {
+bool N64Pad::begin () {
   buttons = 0;
   x = 0;
   y = 0;
   last_poll = 0;
-}
-
-bool N64Pad::begin () {
+  
   // I'm not sure non-Nintendo controllers return 5
-  if (proto.runCommand (N64PadProtocol::CMD_RESET, buf, 3))
+  if (runCommand (CMD_RESET))
     return buf[0] == 5;
   else
     return false;
@@ -36,11 +34,16 @@ bool N64Pad::begin () {
 
 void N64Pad::read () {
   if (millis () - last_poll >= 10) {
-    proto.runCommand (N64PadProtocol::CMD_POLL, buf, 4);
+    runCommand (CMD_POLL);
     buttons = ((((uint16_t) buf[0]) << 8) | buf[1]);
     x = (int8_t) buf[2];
     y = (int8_t) buf[3];
 
     last_poll = millis ();
   }
+}
+
+byte *N64Pad::runCommand (const ProtoCommand cmd) {
+  byte cmdByte = static_cast<byte> (cmd);
+  return proto.runCommand (&cmdByte, 1, buf, sizeof (buf));
 }

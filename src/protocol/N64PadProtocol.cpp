@@ -94,41 +94,30 @@ inline static byte readPad () {
 }
 
 // This must be implemented like this, as it cannot be too slow, or the controller won't recognize the signal
-inline static void sendCmd (N64PadProtocol::Command cmd) {
-  byte cmdbyte = static_cast<byte> (cmd);
-  for (byte i = 0; i < 8; i++) {
-    // MSB first
-    if (cmdbyte & 0x80)
-      sendOne ();
-    else
-      sendZero ();
-    cmdbyte <<= 1;
+inline static void sendCmd (const byte *cmdbuf, const byte cmdsz) {
+  for (byte j = 0; j < cmdsz; j++) {
+    byte cmdbyte = cmdbuf[j];
+	for (byte i = 0; i < 8; i++) {
+	// MSB first
+	if (cmdbyte & 0x80)
+	  sendOne ();
+	else
+	  sendZero ();
+	cmdbyte <<= 1;
+	}
   }
   sendStop ();
 }
 
-byte *N64PadProtocol::runCommand (Command cmd, byte *repbuf, byte repsz) {
+byte *N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz) {
   register byte i;
-
-  switch (cmd) {
-    case CMD_IDENTIFY:
-    case CMD_POLL:
-    case CMD_RESET:
-      // These are supported
-      break;
-    case CMD_READ:
-    case CMD_WRITE:
-    default:
-      // There are (not yet?) supported
-      return NULL;
-  }
 
   for (i = 0; i < repsz; i++)
     repbuf[i] = 0;
 
   noInterrupts ();
 
-  sendCmd (cmd);
+  sendCmd (cmdbuf, cmdsz);
 
   // Wait for first falling edge
   while (readPad ())
@@ -162,52 +151,3 @@ byte *N64PadProtocol::runCommand (Command cmd, byte *repbuf, byte repsz) {
 
   return repbuf;
 }
-
-#if 0
---- OLD STUFF ---
-
-#define N 500
-byte *sendCmd2 (byte cmd, byte *repbufX, byte repsz) {
-  register byte i;
-
-  noInterrupts ();
-
-  sendCmd (cmd);
-
-  while (readPad ())
-    ;
-
-  register byte x, y, prev = 0;
-  byte b[N];
-  for (int i = 0; i < N; i++) {
-    b[i] = readPad ();
-    //delay05us ();
-  }
-
-  byte tmp = 0;
-  int n = 0;
-  Serial.print (++n);
-  Serial.print (" ");
-  for (int i = 0; i < N; i++) {
-    if (b[i] == 0 && tmp == 1) {
-      Serial.println ("");
-      if (n % 8 == 0)
-        Serial.println ("-");
-      Serial.print (++n);
-      Serial.print (" ");
-    }
-    tmp = b[i];
-
-    //Serial.print (i);
-    //Serial.print (" ");
-    Serial.print (b[i]);
-  }
-  Serial.println ("");
-
-  interrupts ();
-
-  return NULL;
-}
-
-#endif
-

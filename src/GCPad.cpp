@@ -17,28 +17,52 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
-#include <Arduino.h>
+#include "GCPad.h"
 
-#if defined ( __AVR_ATtinyX5__ )
-	// P2 is analog input 1
-	#define PAD_DIR DDRB
-	#define PAD_OUTPORT PORTB
-	#define PAD_INPORT PINB
-	#define PAD_BIT PB2
-#elif defined( __AVR_ATmega328P__ ) || defined( __AVR_ATmega328__ ) || defined( __AVR_ATmega168__ ) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
-	#define PAD_DIR DDRC
-	#define PAD_OUTPORT PORTC
-	#define PAD_INPORT PINC
-	#define PAD_BIT 0
-#else
-  // At least for the moment...
-  #error “This library is not currently supported on this platform”
-#endif
-
-class N64PadProtocol {
-public:
-  /* NOTE: This disables interrupts and runs for 32+ us per byte to
-   * exchange!
-   */
-  byte *runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
+// These must follow the order from ProtoCommand
+const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE] = {
+  // CMD_POLL - Buffer size required: 8 bytes
+  {0x40, 0x03, 0x02},
+  
+  // CMD_RUMBLE_ON - Do we even have a reply?
+  {0x40, 0x00, 0x01},
+  
+  // CMD_RUMBLE_OFF - Ditto
+  {0x40, 0x00, 0x00}
 };
+
+bool GCPad::begin () {
+  buttons = 0;
+  x = 0;
+  y = 0;
+  c_x = 0;
+  c_y = 0;
+  left_trigger = 0;
+  right_trigger = 0;
+  
+  last_poll = 0;
+
+  // It seems we need nothing special
+  return true;
+}
+
+void GCPad::read () {
+  if (millis () - last_poll >= 10) {
+    runCommand (CMD_POLL);
+    
+    // The mask makes sure unused bits are 0, some seem to be always 1
+    buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
+    x = (int8_t) buf[2];
+    y = (int8_t) buf[3];
+    c_x = (int8_t) buf[4];
+    c_y = (int8_t) buf[5];
+    left_trigger = buf[6];
+    right_trigger = buf[7];
+
+    last_poll = millis ();
+  }
+}
+
+byte *GCPad::runCommand (const ProtoCommand cmd) {
+  return proto.runCommand (protoCommands[cmd], COMMAND_SIZE, buf, sizeof (buf));
+}
