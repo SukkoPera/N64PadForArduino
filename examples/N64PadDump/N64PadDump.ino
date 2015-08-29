@@ -103,4 +103,6 @@ void loop () {
   Serial.println (pad.x);
   Serial.print ("Y = ");
   Serial.println (pad.y);
+  
+  delay (250);
 }
