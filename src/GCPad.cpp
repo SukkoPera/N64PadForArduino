@@ -47,15 +47,15 @@ bool GCPad::begin () {
 }
 
 void GCPad::read () {
-  if (millis () - last_poll >= 10) {
+  if (last_poll == 0 || millis () - last_poll >= 10) {
     runCommand (CMD_POLL);
     
     // The mask makes sure unused bits are 0, some seem to be always 1
     buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
-    x = (int8_t) buf[2];
-    y = (int8_t) buf[3];
-    c_x = (int8_t) buf[4];
-    c_y = (int8_t) buf[5];
+    x = buf[2];
+    y = buf[3];
+    c_x = buf[4];
+    c_y = buf[5];
     left_trigger = buf[6];
     right_trigger = buf[7];
 

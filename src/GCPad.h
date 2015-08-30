@@ -47,38 +47,39 @@ public:
   // Button status register. Use PadButton values to test this. 1 means pressed.
   uint16_t buttons;
 
-  /* X-Axis coordinate (Positive LEFT)
+  /* X-Axis coordinate (Growing RIGHT)
    *
    * Range for analog position is -128 to 127, however, true GameCube
    * controller is mechanically limited, so the actual range is about
-   * -18 to 16.
+   * 20 to 225.
    */
-  int8_t x;
+  uint8_t x;
 
-  /* Y-Axis Coordinate (Positive DOWN)
+  /* Y-Axis Coordinate (Growing UP)
    *
    * See the comment about x above
    */
-  int8_t y;
+  uint8_t y;
 
-  /* C-Stick X-Axis coordinate (Positive LEFT)
+  /* C-Stick X-Axis coordinate (Growing RIGHT)
    *
    * Range for analog position is -128 to 127, however, true GameCube
    * controller is mechanically limited, so the actual range is about
-   * -18 to 16.
+   * 20 to 225.
    */
-  int8_t c_x;
+  uint8_t c_x;
 
-  /* C-Stick Y-Axis Coordinate (Positive DOWN)
+  /* C-Stick Y-Axis Coordinate (Growing UP)
    *
    * See the comment about c_x above
    */
-  int8_t c_y;
+  uint8_t c_y;
   
   /* Left trigger
    * 
    * Range is 0-255, but full range seems to be hard to reach. The L
-   * button seems to trigger at ~200.
+   * button seems to trigger at ~200. Note that this might not be 0 when
+   * fully unpressed!
    */
   uint8_t left_trigger;
 
@@ -93,7 +94,7 @@ public:
 
   /* Reads the current state of the joystick.
    *
-   * Note that this functions disables interrupts and runs for 160+ us!
+   * Note that this functions disables interrupts and runs for 350+ us!
    */
   void read ();
 

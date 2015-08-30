@@ -26,8 +26,8 @@
  * 
  * 1. +5V (for rumble motor only)
  * 2. Data
- * 3. Ground
- * 4. Ground
+ * 3. Ground for +5V
+ * 4. Ground for 3.3V
  * 5. ?
  * 6. +3.3V
  * 7. Ground (for shielding)
@@ -36,7 +36,7 @@
  * which pin is which.
  *
  * Connect:
- * - Ground
+ * - Ground for +3.3V
  * - +3.3V
  * - Data with A0 - WARNING: Only this pin is supported for input at the moment!
  * - Optionally +5V, if you want to use rumble functions
@@ -45,6 +45,9 @@
  * probably anything in the range 1-10k will be fine. This might even be
  * unnecessary, as some controllers have an internal one, so just try! But again,
  * note that it's +3.3V, NOT +5V!
+ *
+ * Note that I have distinghuished the grounds, as to get my official controller
+ * to work, I had to connect pin 4, it didn't work with pin 3 only!
  */
 
 #include <GCPad.h>
