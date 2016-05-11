@@ -135,8 +135,7 @@ byte *N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *re
         // Falling edge, new bit
         break;
       } else {
-        // Sample again - This delay doesn't hurt but seems not necessary
-        delay025us ();
+        // Just sample again
       }
       prev = y;
     }
