@@ -118,7 +118,7 @@ private:
   byte buf[8];
 
   // millis() last time controller was polled
-  long last_poll;
-  
+  unsigned long last_poll;
+
   byte *runCommand (const ProtoCommand cmd);
 };
