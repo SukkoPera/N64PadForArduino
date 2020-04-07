@@ -141,7 +141,7 @@ byte *N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *re
     }
 
     repbuf[i / 8] <<= 1;
-    if (x > 7) {
+    if (x >= 7) {
       repbuf[i / 8] |= 0x01;
     }
   }
