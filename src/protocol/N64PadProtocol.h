@@ -19,17 +19,22 @@
 
 #include <Arduino.h>
 
-#if defined ( __AVR_ATtinyX5__ )
+#if defined (__AVR_ATtinyX5__)
 	// P2 is analog input 1
 	#define PAD_DIR DDRB
 	#define PAD_OUTPORT PORTB
 	#define PAD_INPORT PINB
 	#define PAD_BIT PB2
-#elif defined( __AVR_ATmega328P__ ) || defined( __AVR_ATmega328__ ) || defined( __AVR_ATmega168__ ) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
+#elif defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
 	#define PAD_DIR DDRD
 	#define PAD_OUTPORT PORTD
 	#define PAD_INPORT PIND
 	#define PAD_BIT PD2
+#elif defined (__AVR_ATmega32U4__)
+	#define PAD_DIR DDRD
+	#define PAD_OUTPORT PORTD
+	#define PAD_INPORT PIND
+	#define PAD_BIT PD1
 #else
   // At least for the moment...
   #error “This library is not currently supported on this platform”
@@ -37,7 +42,7 @@
 
 class N64PadProtocol {
 public:
-  /* NOTE: This disables interrupts and runs for 32+ us per byte to
+  /* NOTE: This disables interrupts and runs for ~30 us per byte to
    * exchange!
    */
   byte *runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
