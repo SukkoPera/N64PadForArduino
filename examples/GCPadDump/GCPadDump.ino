@@ -38,7 +38,8 @@
  * Connect:
  * - Ground for +3.3V
  * - +3.3V
- * - Data with A0 - WARNING: Only this pin is supported for input at the moment!
+ * - Data with pin 2 - WARNING: Only this pin is supported for input at the
+ *   moment!
  * - Optionally +5V, if you want to use rumble functions
  *
  * Finally add a pullup resistor between +3.3V and Data. I used 10 kOhm, but

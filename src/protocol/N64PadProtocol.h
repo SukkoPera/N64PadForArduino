@@ -26,10 +26,10 @@
 	#define PAD_INPORT PINB
 	#define PAD_BIT PB2
 #elif defined( __AVR_ATmega328P__ ) || defined( __AVR_ATmega328__ ) || defined( __AVR_ATmega168__ ) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
-	#define PAD_DIR DDRC
-	#define PAD_OUTPORT PORTC
-	#define PAD_INPORT PINC
-	#define PAD_BIT 0
+	#define PAD_DIR DDRD
+	#define PAD_OUTPORT PORTD
+	#define PAD_INPORT PIND
+	#define PAD_BIT PD2
 #else
   // At least for the moment...
   #error “This library is not currently supported on this platform”
