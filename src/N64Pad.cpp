@@ -19,6 +19,26 @@
 
 #include "N64Pad.h"
 
+/* These must follow the order from ProtoCommand, first byte is expected length
+ * of reply
+ */
+const byte N64Pad::protoCommands[CMD_NUMBER][1 + 1] = {
+  // CMD_IDENTIFY - Buffer size required: 3 bytes
+  {3, 0x00},
+
+  // CMD_POLL - 4
+  {4, 0x01},
+
+  // CMD_READ - ?
+  {1, 0x02},
+
+  // CMD_WRITE - ?
+  {1, 0x03},
+
+  // CMD_RESET - 3
+  {3, 0xFF}
+};
+
 bool N64Pad::begin () {
   buttons = 0;
   x = 0;
@@ -33,7 +53,7 @@ bool N64Pad::begin () {
 }
 
 void N64Pad::read () {
-  if (millis () - last_poll >= 10) {
+  if (millis () - last_poll >= MIN_POLL_INTERVAL_MS) {
     runCommand (CMD_POLL);
     buttons = ((((uint16_t) buf[0]) << 8) | buf[1]);
     x = (int8_t) buf[2];
@@ -44,6 +64,5 @@ void N64Pad::read () {
 }
 
 byte *N64Pad::runCommand (const ProtoCommand cmd) {
-  byte cmdByte = static_cast<byte> (cmd);
-  return proto.runCommand (&cmdByte, 1, buf, sizeof (buf));
+  return proto.runCommand (&(protoCommands[(byte) cmd][1]), 1, buf, protoCommands[(byte) cmd][0]);
 }

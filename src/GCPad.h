@@ -110,8 +110,9 @@ private:
     CMD_RUMBLE_OFF = 2,
     CMD_NUMBER    // Leave at end
   };
-  
-  static const byte protoCommands[CMD_NUMBER][COMMAND_SIZE];
+
+  // First byte is expected reply length
+  static const byte protoCommands[CMD_NUMBER][COMMAND_SIZE + 1];
 
   // 8 should enough for all our uses
   byte buf[8];

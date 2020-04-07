@@ -21,6 +21,8 @@
 
 class N64Pad {
 public:
+  const byte MIN_POLL_INTERVAL_MS = 1000U / 60U;
+
   enum PadButton {
     BTN_A       = 1 << 15,
     BTN_B       = 1 << 14,
@@ -70,17 +72,17 @@ private:
   N64PadProtocol proto;
   
   enum ProtoCommand {
-    // Buffer size required: 3 bytes
-    CMD_IDENTIFY = 0x00,
-    // 4
-    CMD_POLL = 0x01,
-    // ?
-    CMD_READ = 0x02,
-    // ?
-    CMD_WRITE = 0x03,
-    // 3
-    CMD_RESET = 0xFF
+    CMD_IDENTIFY = 0,
+    CMD_POLL,
+    CMD_READ,
+    CMD_WRITE,
+    CMD_RESET,
+
+    CMD_NUMBER    // Leave at end
   };
+
+  // First byte is expected reply length, second byte is actual command byte
+  static const byte protoCommands[CMD_NUMBER][1 + 1];
 
   // 4 is enough for all our uses
   byte buf[4];

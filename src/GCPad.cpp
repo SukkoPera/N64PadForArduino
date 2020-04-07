@@ -19,16 +19,18 @@
 
 #include "GCPad.h"
 
-// These must follow the order from ProtoCommand
-const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE] = {
+/* These must follow the order from ProtoCommand, first byte is expected length
+ * of reply
+ */
+const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE + 1] = {
   // CMD_POLL - Buffer size required: 8 bytes
-  {0x40, 0x03, 0x02},
-  
+  {8, 0x40, 0x03, 0x02},
+
   // CMD_RUMBLE_ON - Do we even have a reply?
-  {0x40, 0x00, 0x01},
-  
+  {1, 0x40, 0x00, 0x01},
+
   // CMD_RUMBLE_OFF - Ditto
-  {0x40, 0x00, 0x00}
+  {1, 0x40, 0x00, 0x00}
 };
 
 bool GCPad::begin () {
@@ -64,5 +66,5 @@ void GCPad::read () {
 }
 
 byte *GCPad::runCommand (const ProtoCommand cmd) {
-  return proto.runCommand (protoCommands[cmd], COMMAND_SIZE, buf, sizeof (buf));
+  return proto.runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0]);
 }
