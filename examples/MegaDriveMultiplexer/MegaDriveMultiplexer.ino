@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of N64Pad for Arduino.                                    *
  *                                                                             *
- * Copyright (C) 2015 by SukkoPera                                             *
+ * Copyright (C) 2015-2020 by SukkoPera                                        *
  *                                                                             *
  * N64Pad is free software: you can redistribute it and/or modify              *
  * it under the terms of the GNU General Public License as published by        *
