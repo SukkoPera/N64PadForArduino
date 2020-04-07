@@ -17,10 +17,10 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  *******************************************************************************
  *
- * See the following links for some references on the N64 controller protocol:
- * - https://code.google.com/p/micro-64-controller/wiki/Protocol
- * - http://afermiano.com/index.php/n64-controller-protocol
- * - http://eecs.umich.edu/courses/eecs373/Lec/StudentW14/N64%20Controller.pdf
+ * See the following links for some references on the N64/GC controller
+ * protocol:
+ * - http://www.int03.co.uk/crema/hardware/gamecube/gc-control.htm
+ * - https://www.mixdown.ca/n64dev/
  */
 
 // Pad data pin will be set to input (Hi-Z) automatically
