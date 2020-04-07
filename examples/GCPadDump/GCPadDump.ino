@@ -55,7 +55,7 @@
 GCPad pad;
 
 void setup () {
-  Serial.begin (9600);
+  Serial.begin (115200);
 
   Serial.println ("Probing for pad...");
   if (pad.begin ()) {
