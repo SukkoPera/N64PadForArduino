@@ -113,7 +113,5 @@ void loop () {
 	  oldButtons = pad.buttons;
 	  oldX = pad.x;
 	  oldY = pad.y;
-  }
-  
-  delay (20);
+  }  
 }
