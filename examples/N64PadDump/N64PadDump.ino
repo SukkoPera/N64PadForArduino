@@ -51,15 +51,23 @@ N64Pad pad;
 
 void setup () {
   Serial.begin (115200);
+  while (!Serial)
+	;
 
   Serial.println ("Probing for pad...");
   while (!pad.begin ()) {
-	Serial.println ("Pad missing");
+	Serial.println ("No reply");
 	delay (1000);
   }
   Serial.println ("Pad detected!");
 
   pinMode (LED_BUILTIN, OUTPUT);
+  for (byte i = 0; i < 3; ++i) {
+	   digitalWrite (LED_BUILTIN, HIGH);
+	   delay (200);
+	   digitalWrite (LED_BUILTIN, LOW);
+	   delay (200);
+   }
 }
 
 

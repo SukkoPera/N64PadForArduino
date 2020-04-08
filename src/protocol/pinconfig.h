@@ -17,19 +17,27 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
-#include <Arduino.h>
+// NOTE: This file is included both from C and assembly code!
 
-class N64PadProtocol {
-public:
-	void begin ();
-
-  /* NOTE: This disables interrupts and runs for ~30 us per byte to
-   * exchange!
-   */
-  boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
-
-private:
-  static void enableInterrupt ();
-
-  static void disableInterrupt ();
-};
+#if defined (__AVR_ATtinyX5__)
+	// P2 is analog input 1
+	#define PAD_DIR DDRB
+	#define PAD_OUTPORT PORTB
+	#define PAD_INPORT PINB
+	#define PAD_BIT PB2
+#elif defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
+	// Pin 2
+	#define PAD_DIR DDRD
+	#define PAD_OUTPORT PORTD
+	#define PAD_INPORT PIND
+	#define PAD_BIT PD2
+#elif defined (__AVR_ATmega32U4__)
+	// Pin 3
+	#define PAD_DIR DDRD
+	#define PAD_OUTPORT PORTD
+	#define PAD_INPORT PIND
+	#define PAD_BIT PD0
+#else
+  // At least for the moment...
+  #error “This library is not currently supported on this platform”
+#endif

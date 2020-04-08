@@ -66,5 +66,10 @@ void GCPad::read () {
 }
 
 byte *GCPad::runCommand (const ProtoCommand cmd) {
-  return proto.runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0]);
+  byte *ret = NULL;
+  if (proto.runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0])) {
+	  ret = buf;
+  }
+
+  return ret;
 }

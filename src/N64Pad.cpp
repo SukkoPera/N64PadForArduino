@@ -40,6 +40,8 @@ const byte N64Pad::protoCommands[CMD_NUMBER][1 + 1] = {
 };
 
 bool N64Pad::begin () {
+  proto.begin ();
+
   buttons = 0;
   x = 0;
   y = 0;
@@ -64,5 +66,10 @@ void N64Pad::read () {
 }
 
 byte *N64Pad::runCommand (const ProtoCommand cmd) {
-  return proto.runCommand (&(protoCommands[(byte) cmd][1]), 1, buf, protoCommands[(byte) cmd][0]);
+  byte *ret = NULL;
+  if (proto.runCommand (&(protoCommands[(byte) cmd][1]), 1, buf, protoCommands[(byte) cmd][0])) {
+	  ret = buf;
+  }
+
+  return ret;
 }

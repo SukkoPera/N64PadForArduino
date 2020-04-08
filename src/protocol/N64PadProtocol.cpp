@@ -23,9 +23,30 @@
  * - https://www.mixdown.ca/n64dev/
  */
 
-// Pad data pin will be set to input (Hi-Z) automatically
+/* Here are a few #defines that will disable some "things happening in the
+ * background" while we are polling the controller. The controller protocol is
+ * very fast and we need all the speed we can use to catch up with it.
+ *
+ * All defaults have been tested with Arduino 1.8.12.
+ */
+#if defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__)
+// This can be enabled, but does not seem necessary
+//~ #define DISABLE_USART
+//~ #define DISABLE_MILLIS
+#elif defined ( __AVR_ATmega32U4__)
+// These are absolutely necessary for reliable readings
+#define DISABLE_USB_INTERRUPTS
+#define DISABLE_MILLIS
+
+// Don't touch this
+#include "usbpause.h"
+UsbPause usbMagic;
+#endif
+
 
 #include "N64PadProtocol.h"
+#include "pinconfig.h"
+
 
 // Delay 62.5ns on a 16MHz AtMega
 #define NOP __asm__ __volatile__ ("nop\n\t")
@@ -54,6 +75,27 @@
   delay2us(); \
 } while (0)
 
+byte repbuf2[8];
+static volatile byte *curByte = &GPIOR2;
+static volatile byte *curBit = &GPIOR1;
+
+void N64PadProtocol::begin () {
+  // Prepare interrupts: INT0 is triggered by pin 2 FALLING
+  noInterrupts ();
+  EICRA |= (1 << ISC01);
+  EICRA &= ~(1 << ISC00);
+  interrupts ();
+  // Do not enable INT0 here!
+}
+
+void N64PadProtocol::enableInterrupt () {
+  EIFR |= (1 << INTF0);
+  EIMSK |= (1 << INT0);
+}
+
+void N64PadProtocol::disableInterrupt () {
+  EIMSK &= ~(1 << INT0);
+}
 
 inline static void sendLow () {
   // Switch pin to output mode, it will be low by default
@@ -86,11 +128,13 @@ inline static void sendStop () {
   sendLow ();
   delay1us ();
   sendHigh ();
-  delay2us ();
-}
 
-inline static byte readPad () {
-  return PAD_INPORT & (1 << PAD_BIT);
+  /* Now, we would be supposed to delay 2 us here, but we're cutting it a bit
+   * short since we need to enable interrupts and be sure not to miss the first
+   * falling edge driven by the controller.
+   */
+  delay1us ();		
+  delay05us ();
 }
 
 // This must be implemented like this, as it cannot be too slow, or the controller won't recognize the signal
@@ -109,44 +153,69 @@ inline static void sendCmd (const byte *cmdbuf, const byte cmdsz) {
   sendStop ();
 }
 
-byte *N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz) {
-  register byte i;
+boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz) {
+  for (byte i = 0; i < repsz; i++)
+    repbuf2[i] = 0;
 
-  for (i = 0; i < repsz; i++)
-    repbuf[i] = 0;
+  // Prepare things for the INT0 ISR
+  *curBit = 8;
+  *curByte = 0;
 
+  // Disable "things happening in the background" as needed
+#ifdef DISABLE_MILLIS
   noInterrupts ();
+  byte oldTIMSK0 = TIMSK0;
+  TIMSK0 &= ~((1 << OCIE0B) | (1 << OCIE0A) | (1 << TOIE0));
+  TIFR0 |= (1 << OCF0B) | (1 << OCF0A) | (1 << TOV0);
+  interrupts ();
+#else
+  unsigned long start = millis ();
+#endif
 
+#ifdef DISABLE_USART
+  byte oldUCSR0B = UCSR0B;
+  UCSR0B &= ~((1 << UCSZ02) | (1 << RXB80) | (1 << TXB80));
+#endif
+
+#ifdef DISABLE_USB_INTERRUPTS
+  usbMagic.pause ();
+#endif
+
+  // We can send the command now
   sendCmd (cmdbuf, cmdsz);
 
-  // Wait for first falling edge
-  while (readPad ())
-    ;
+  // Enable INT0 handling - QUICK!!!
+  enableInterrupt ();
 
-  register byte x, y, prev;
-  for (i = 0; i < repsz * 8; i++) {
-    x = 0;
-    prev = 0;
-    while (1) {
-      y = readPad ();
-      if (y) {
-        x = (x << 1) | 0x01;
-      } else if (prev != 0) {
-        // Falling edge, new bit
-        break;
-      } else {
-        // Just sample again
-      }
-      prev = y;
-    }
+  // OK, just wait for the reply buffer to fill at last
+  while (*curByte < repsz
+#ifndef DISABLE_MILLIS
+    && millis () - start <= 200
+#endif
+  )
+	;
 
-    repbuf[i / 8] <<= 1;
-    if (x >= 7) {
-      repbuf[i / 8] |= 0x01;
-    }
-  }
+  // Done, ISR is no longer needed
+  disableInterrupt ();
 
-  interrupts ();
+  // Reenable things happening in background
+#ifdef DISABLE_USB_INTERRUPTS
+  usbMagic.resume ();
+#endif
 
-  return repbuf;
+#ifdef DISABLE_USART
+  UCSR0B = oldUCSR0B;
+#endif
+
+#ifdef DISABLE_MILLIS
+  TIMSK0 = oldTIMSK0;
+#endif
+
+  //~ for (byte i = 0; i < repsz; i++)
+    //~ Serial.println (repbuf2[i], BIN);
+
+  // FIXME
+  memcpy (repbuf, repbuf2, repsz);
+
+  return *curByte == repsz;
 }
