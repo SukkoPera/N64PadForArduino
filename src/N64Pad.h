@@ -66,7 +66,7 @@ public:
    *
    * Note that this functions disables interrupts and runs for 160+ us!
    */
-  void read ();
+  boolean read ();
 
 private:
   N64PadProtocol proto;

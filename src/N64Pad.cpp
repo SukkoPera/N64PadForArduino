@@ -54,15 +54,20 @@ bool N64Pad::begin () {
     return false;
 }
 
-void N64Pad::read () {
+boolean N64Pad::read () {
+  boolean ret = true;
+  
   if (millis () - last_poll >= MIN_POLL_INTERVAL_MS) {
-    runCommand (CMD_POLL);
-    buttons = ((((uint16_t) buf[0]) << 8) | buf[1]);
-    x = (int8_t) buf[2];
-    y = (int8_t) buf[3];
+    if ((ret = (runCommand (CMD_POLL) != NULL))) {
+      buttons = ((((uint16_t) buf[0]) << 8) | buf[1]);
+      x = (int8_t) buf[2];
+      y = (int8_t) buf[3];
 
-    last_poll = millis ();
+      last_poll = millis ();
+	}
   }
+
+  return ret;
 }
 
 byte *N64Pad::runCommand (const ProtoCommand cmd) {

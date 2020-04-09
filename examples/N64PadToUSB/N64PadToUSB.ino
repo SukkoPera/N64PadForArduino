@@ -100,16 +100,6 @@ Joystick_ usbStick (
 void setup () {
   pinMode (LED_BUILTIN, OUTPUT);
 
-  if (!pad.begin ()) {
-    // Report error, somehow
-    while (1) {
-        digitalWrite (LED_BUILTIN, HIGH);
-        delay (300);
-        digitalWrite (LED_BUILTIN, LOW);
-        delay (700);
-    }
-  }
-
   // Init Joystick library
   usbStick.begin (false);		// We'll call sendState() manually to minimize lag
   usbStick.setXAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
@@ -120,46 +110,59 @@ void setup () {
 
 
 void loop () {
-  pad.read ();
-
-  /* Note that this slows down the controller response, so you might want to
-   * comment it out!
-   */
-  digitalWrite (LED_BUILTIN, pad.buttons != 0);
-
-  // Buttons first!
-  usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
-  usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
-  usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
-  usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
-  usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
-  usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
-  usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
-  usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
-  usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
-  usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
-
-  // D-Pad makes up the X/Y axes
-  if ((pad.buttons & N64Pad::BTN_UP) != 0) {
-  	usbStick.setYAxis (ANALOG_MIN_VALUE);
-  } else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
-  	usbStick.setYAxis (ANALOG_MAX_VALUE);
-  } else {
-  	usbStick.setYAxis (ANALOG_IDLE_VALUE);
-  }
+  static boolean haveController = false;
   
-  if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
-  	usbStick.setXAxis (ANALOG_MIN_VALUE);
-  } else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
-  	usbStick.setXAxis (ANALOG_MAX_VALUE);
+  if (!haveController) {
+	if (pad.begin ()) {
+	  // Controller detected!
+      digitalWrite (LED_BUILTIN, HIGH);
+      haveController = true;
+    } else {
+      delay (333);
+	}
   } else {
-  	usbStick.setXAxis (ANALOG_IDLE_VALUE);
+    if (!pad.read ()) {
+      // Controller lost :(
+      digitalWrite (LED_BUILTIN, LOW);
+      haveController = false;
+    } else {
+	  // Controller was read fine, map buttons and send result to USB
+	  
+      // Buttons first!
+      usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
+      usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
+      usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
+      usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
+      usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
+      usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
+      usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
+      usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
+      usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
+      usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
+    
+      // D-Pad makes up the X/Y axes
+      if ((pad.buttons & N64Pad::BTN_UP) != 0) {
+      	usbStick.setYAxis (ANALOG_MIN_VALUE);
+      } else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
+      	usbStick.setYAxis (ANALOG_MAX_VALUE);
+      } else {
+      	usbStick.setYAxis (ANALOG_IDLE_VALUE);
+      }
+      
+      if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
+      	usbStick.setXAxis (ANALOG_MIN_VALUE);
+      } else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
+      	usbStick.setXAxis (ANALOG_MAX_VALUE);
+      } else {
+      	usbStick.setXAxis (ANALOG_IDLE_VALUE);
+      }
+      
+      // The analog stick gets mapped to the X/Y rotation axes
+      usbStick.setRxAxis (pad.x);
+      usbStick.setRyAxis (pad.y);
+    
+      // All done, send data for real!
+      usbStick.sendState ();
+    }
   }
-  
-  // The analog stick gets mapped to the X/Y rotation axes
-  usbStick.setRxAxis (pad.x);
-  usbStick.setRyAxis (pad.y);
-
-  // All done, send data for real!
-  usbStick.sendState ();
 }

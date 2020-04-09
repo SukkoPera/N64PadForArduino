@@ -28,8 +28,13 @@ public:
    */
   boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
 
+  // Needs to be public as called from ISR
+  static void stopTimer ();
+
 private:
   static void enableInterrupt ();
 
   static void disableInterrupt ();
+
+  static void startTimer ();
 };

@@ -54,72 +54,74 @@ void setup () {
   while (!Serial)
 	;
 
-  Serial.println ("Probing for pad...");
-  while (!pad.begin ()) {
-	Serial.println ("No reply");
-	delay (1000);
-  }
-  Serial.println ("Pad detected!");
-
-  pinMode (LED_BUILTIN, OUTPUT);
-  for (byte i = 0; i < 3; ++i) {
-	   digitalWrite (LED_BUILTIN, HIGH);
-	   delay (200);
-	   digitalWrite (LED_BUILTIN, LOW);
-	   delay (200);
-   }
+  Serial.println ("Ready!");
 }
 
 
 void loop () {
+  static boolean haveController = false;
   static uint16_t oldButtons = 0;
   static int8_t oldX = 0, oldY = 0;
-  
-  pad.read ();
 
-  digitalWrite (LED_BUILTIN, pad.buttons != 0);
-
-  if (pad.buttons != oldButtons || pad.x != oldX || pad.y != oldY) {
-	  Serial.print ("Pressed: ");
-	  if (pad.buttons & N64Pad::BTN_A)
-		Serial.print ("A ");
-	  if (pad.buttons & N64Pad::BTN_B)
-		Serial.print ("B ");
-	  if (pad.buttons & N64Pad::BTN_Z)
-		Serial.print ("Z ");
-	  if (pad.buttons & N64Pad::BTN_START)
-		Serial.print ("Start ");
-	  if (pad.buttons & N64Pad::BTN_UP)
-		Serial.print ("Up ");
-	  if (pad.buttons & N64Pad::BTN_DOWN)
-		Serial.print ("Down ");
-	  if (pad.buttons & N64Pad::BTN_LEFT)
-		Serial.print ("Left ");
-	  if (pad.buttons & N64Pad::BTN_RIGHT)
-		Serial.print ("Right ");
-	  if (pad.buttons & N64Pad::BTN_L)
-		Serial.print ("L ");
-	  if (pad.buttons & N64Pad::BTN_R)
-		Serial.print ("R ");
-	  if (pad.buttons & N64Pad::BTN_C_UP)
-		Serial.print ("C_Up ");
-	  if (pad.buttons & N64Pad::BTN_C_DOWN)
-		Serial.print ("C_Down ");
-	  if (pad.buttons & N64Pad::BTN_C_LEFT)
-		Serial.print ("C_Left ");
-	  if (pad.buttons & N64Pad::BTN_C_RIGHT)
-		Serial.print ("C_Right ");
-	  Serial.println ("");
-
-	  Serial.print ("X = ");
-	  Serial.println (pad.x);
-	  Serial.print ("Y = ");
-	  Serial.println (pad.y);
-	  
-	  Serial.println ("");
-
-	  oldButtons = pad.buttons;
-	  oldX = pad.x;
-	  oldY = pad.y;
-  }  
+  if (!haveController) {
+	if (pad.begin ()) {
+	  // Controller detected!
+      digitalWrite (LED_BUILTIN, HIGH);
+      Serial.println (F("Controller found!"));
+      haveController = true;
+    } else {
+      delay (333);
+	}
+  } else {
+    if (!pad.read ()) {
+      // Controller lost :(
+      digitalWrite (LED_BUILTIN, LOW);
+      Serial.println (F("Controller lost :("));
+      haveController = false;
+    } else {
+      if (pad.buttons != oldButtons || pad.x != oldX || pad.y != oldY) {
+    	  Serial.print ("Pressed: ");
+    	  if (pad.buttons & N64Pad::BTN_A)
+    		Serial.print ("A ");
+    	  if (pad.buttons & N64Pad::BTN_B)
+    		Serial.print ("B ");
+    	  if (pad.buttons & N64Pad::BTN_Z)
+    		Serial.print ("Z ");
+    	  if (pad.buttons & N64Pad::BTN_START)
+    		Serial.print ("Start ");
+    	  if (pad.buttons & N64Pad::BTN_UP)
+    		Serial.print ("Up ");
+    	  if (pad.buttons & N64Pad::BTN_DOWN)
+    		Serial.print ("Down ");
+    	  if (pad.buttons & N64Pad::BTN_LEFT)
+    		Serial.print ("Left ");
+    	  if (pad.buttons & N64Pad::BTN_RIGHT)
+    		Serial.print ("Right ");
+    	  if (pad.buttons & N64Pad::BTN_L)
+    		Serial.print ("L ");
+    	  if (pad.buttons & N64Pad::BTN_R)
+    		Serial.print ("R ");
+    	  if (pad.buttons & N64Pad::BTN_C_UP)
+    		Serial.print ("C_Up ");
+    	  if (pad.buttons & N64Pad::BTN_C_DOWN)
+    		Serial.print ("C_Down ");
+    	  if (pad.buttons & N64Pad::BTN_C_LEFT)
+    		Serial.print ("C_Left ");
+    	  if (pad.buttons & N64Pad::BTN_C_RIGHT)
+    		Serial.print ("C_Right ");
+    	  Serial.println ("");
+    
+    	  Serial.print ("X = ");
+    	  Serial.println (pad.x);
+    	  Serial.print ("Y = ");
+    	  Serial.println (pad.y);
+    	  
+    	  Serial.println ("");
+    
+    	  oldButtons = pad.buttons;
+    	  oldX = pad.x;
+    	  oldY = pad.y;
+      }
+    }
+  }
 }

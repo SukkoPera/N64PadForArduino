@@ -15,10 +15,10 @@
 ;~ #define SIGNAL sbi _SFR_IO_ADDR (PINB), PB5
 
 ; Leonardo
-;~ #define SIGNAL sbi _SFR_IO_ADDR (PINC), PC7
+#define SIGNAL sbi _SFR_IO_ADDR (PINC), PC7
 
 ; Disable
-#define SIGNAL
+;~ #define SIGNAL
 
 INT0_vect:
 	push    r24

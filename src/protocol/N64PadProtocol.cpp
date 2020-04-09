@@ -79,6 +79,14 @@ byte repbuf2[8];
 static volatile byte *curByte = &GPIOR2;
 static volatile byte *curBit = &GPIOR1;
 
+#ifdef DISABLE_MILLIS
+static volatile boolean timeout = false;
+
+ISR (TIMER1_OVF_vect) {
+  N64PadProtocol::stopTimer ();
+}
+#endif
+
 void N64PadProtocol::begin () {
   // Prepare interrupts: INT0 is triggered by pin 2 FALLING
   noInterrupts ();
@@ -86,15 +94,37 @@ void N64PadProtocol::begin () {
   EICRA &= ~(1 << ISC00);
   interrupts ();
   // Do not enable INT0 here!
+
+#ifdef DISABLE_MILLIS
+  // Prepare timer 1
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCCR1B |= (1 << CS11) | (1 << CS10);	// Prescaler = 64 -> 262ms
+  TIFR1 |= (1 << TOV1);					// Clear pending interrupt, if any
+#endif
+
+  // Signalling output
+  DDRC |= (1 << DDC7);
 }
 
-void N64PadProtocol::enableInterrupt () {
+inline void N64PadProtocol::enableInterrupt () {
   EIFR |= (1 << INTF0);
   EIMSK |= (1 << INT0);
 }
 
-void N64PadProtocol::disableInterrupt () {
+inline void N64PadProtocol::disableInterrupt () {
   EIMSK &= ~(1 << INT0);
+}
+
+inline void N64PadProtocol::startTimer () {
+  timeout = false;
+  TCNT1 = 0;								// counter = 0
+  TIMSK1 |= (1 << TOIE1);					// Trigger ISR on overflow
+}
+
+inline void N64PadProtocol::stopTimer () {
+  timeout = true;
+  TIMSK1 &= ~(1 << TOIE1);					// Do not retrigger
 }
 
 inline static void sendLow () {
@@ -134,7 +164,7 @@ inline static void sendStop () {
    * falling edge driven by the controller.
    */
   delay1us ();		
-  delay05us ();
+  //~ delay05us ();
 }
 
 // This must be implemented like this, as it cannot be too slow, or the controller won't recognize the signal
@@ -181,6 +211,11 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
   usbMagic.pause ();
 #endif
 
+#ifdef DISABLE_MILLIS
+  // Start timeout timer
+  startTimer ();
+#endif
+
   // We can send the command now
   sendCmd (cmdbuf, cmdsz);
 
@@ -191,11 +226,14 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
   while (*curByte < repsz
 #ifndef DISABLE_MILLIS
     && millis () - start <= 200
+#else
+	&& !timeout
 #endif
   )
 	;
 
-  // Done, ISR is no longer needed
+  // Done, ISRs are no longer needed
+  stopTimer ();			// Even if it already happened, it won't hurt
   disableInterrupt ();
 
   // Reenable things happening in background
@@ -210,12 +248,9 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 #ifdef DISABLE_MILLIS
   TIMSK0 = oldTIMSK0;
 #endif
-
-  //~ for (byte i = 0; i < repsz; i++)
-    //~ Serial.println (repbuf2[i], BIN);
-
+    
   // FIXME
-  memcpy (repbuf, repbuf2, repsz);
+  memcpy (repbuf, repbuf2, *curByte);
 
   return *curByte == repsz;
 }
