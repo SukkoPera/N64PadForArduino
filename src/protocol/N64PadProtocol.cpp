@@ -233,7 +233,10 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 	;
 
   // Done, ISRs are no longer needed
+#ifdef DISABLE_MILLIS
   stopTimer ();			// Even if it already happened, it won't hurt
+  TIMSK0 = oldTIMSK0;
+#endif
   disableInterrupt ();
 
   // Reenable things happening in background
@@ -245,9 +248,7 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
   UCSR0B = oldUCSR0B;
 #endif
 
-#ifdef DISABLE_MILLIS
-  TIMSK0 = oldTIMSK0;
-#endif
+
     
   // FIXME
   memcpy (repbuf, repbuf2, *curByte);
