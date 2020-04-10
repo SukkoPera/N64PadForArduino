@@ -48,10 +48,12 @@ bool N64Pad::begin () {
   last_poll = 0;
   
   // I'm not sure non-Nintendo controllers return 5
-  if (runCommand (CMD_RESET))
+  if (runCommand (CMD_RESET)) {
+    last_poll = millis ();
     return buf[0] == 5;
-  else
+  } else {
     return false;
+  }
 }
 
 boolean N64Pad::read () {
