@@ -32,7 +32,7 @@ public:
     BTN_DOWN    = 1 << 10,
     BTN_LEFT    = 1 << 9,
     BTN_RIGHT   = 1 << 8,
-    /* Unused   = 1 << 7, */
+    BTN_LRSTART = 1 << 7,	// This is set when L+R+Start are pressed (and BTN_START is not)
     /* Unused   = 1 << 6, */
     BTN_L       = 1 << 5,
     BTN_R       = 1 << 4,

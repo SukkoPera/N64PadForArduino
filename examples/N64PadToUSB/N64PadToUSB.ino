@@ -31,7 +31,7 @@
 /** \brief Dead zone for analog sticks
  *  
  * If the analog stick moves less than this value from the center position, it
- * is considered still.
+ * is considered still when it emulates the D-Pad.
  * 
  * \sa ANALOG_IDLE_VALUE
  */
@@ -97,6 +97,19 @@ Joystick_ usbStick (
 	false		// includeSteering
 );
 
+bool mapAnalogToDPad = false;
+
+#define deadify(var, thres) (abs (var) > thres ? (var) : 0)
+
+void flashLed (byte n) {
+	for (byte i = 0; i < n; ++i) {
+		digitalWrite (LED_BUILTIN, LOW);
+		delay (40);
+		digitalWrite (LED_BUILTIN, HIGH);
+		delay (80);
+	}
+}
+
 void setup () {
   pinMode (LED_BUILTIN, OUTPUT);
 
@@ -126,43 +139,67 @@ void loop () {
       digitalWrite (LED_BUILTIN, LOW);
       haveController = false;
     } else {
-	  // Controller was read fine, map buttons and send result to USB
-	  
-      // Buttons first!
-      usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
-      usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
-      usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
-      usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
-      usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
-      usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
-      usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
-      usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
-      usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
-      usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
-    
-      // D-Pad makes up the X/Y axes
-      if ((pad.buttons & N64Pad::BTN_UP) != 0) {
-      	usbStick.setYAxis (ANALOG_MIN_VALUE);
-      } else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
-      	usbStick.setYAxis (ANALOG_MAX_VALUE);
-      } else {
-      	usbStick.setYAxis (ANALOG_IDLE_VALUE);
-      }
+	  // Controller was read fine
+      if ((pad.buttons & N64Pad::BTN_LRSTART) != 0) {
+		  // This combo toggles mapAnalogToDPad
+		  mapAnalogToDPad = !mapAnalogToDPad;
+		  flashLed (2 + (byte) mapAnalogToDPad);
+	  } else {
+	    // Map buttons!
+        usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
+        usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
+        usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
+        usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
+        usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
+        usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
+        usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
+        usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
+        usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
+        usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
+  
+        if (!mapAnalogToDPad) {
+  	    // D-Pad makes up the X/Y axes
+          if ((pad.buttons & N64Pad::BTN_UP) != 0) {
+            usbStick.setYAxis (ANALOG_MIN_VALUE);
+          } else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
+            usbStick.setYAxis (ANALOG_MAX_VALUE);
+          } else {
+            usbStick.setYAxis (ANALOG_IDLE_VALUE);
+          }
+          
+          if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
+            usbStick.setXAxis (ANALOG_MIN_VALUE);
+          } else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
+            usbStick.setXAxis (ANALOG_MAX_VALUE);
+          } else {
+            usbStick.setXAxis (ANALOG_IDLE_VALUE);
+          }
+          
+  	    // The analog stick gets mapped to the X/Y rotation axes
+          usbStick.setRxAxis (pad.x);
+          usbStick.setRyAxis (pad.y);
+        } else {
+  		  // Both the D-Pad and analog stick control the X/Y axes
+  		  if ((pad.buttons & N64Pad::BTN_UP || pad.y > ANALOG_DEAD_ZONE) != 0) {
+            usbStick.setYAxis (ANALOG_MIN_VALUE);
+          } else if ((pad.buttons & N64Pad::BTN_DOWN || pad.y < -ANALOG_DEAD_ZONE) != 0) {
+            usbStick.setYAxis (ANALOG_MAX_VALUE);
+          } else {
+            usbStick.setYAxis (ANALOG_IDLE_VALUE);
+          }
+          
+          if ((pad.buttons & N64Pad::BTN_LEFT || pad.x < -ANALOG_DEAD_ZONE) != 0) {
+            usbStick.setXAxis (ANALOG_MIN_VALUE);
+          } else if ((pad.buttons & N64Pad::BTN_RIGHT || pad.x > ANALOG_DEAD_ZONE) != 0) {
+            usbStick.setXAxis (ANALOG_MAX_VALUE);
+          } else {
+            usbStick.setXAxis (ANALOG_IDLE_VALUE);
+          }  
+  	    }
       
-      if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
-      	usbStick.setXAxis (ANALOG_MIN_VALUE);
-      } else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
-      	usbStick.setXAxis (ANALOG_MAX_VALUE);
-      } else {
-      	usbStick.setXAxis (ANALOG_IDLE_VALUE);
+        // All done, send data for real!
+        usbStick.sendState ();
       }
-      
-      // The analog stick gets mapped to the X/Y rotation axes
-      usbStick.setRxAxis (pad.x);
-      usbStick.setRyAxis (pad.y);
-    
-      // All done, send data for real!
-      usbStick.sendState ();
     }
   }
 }
