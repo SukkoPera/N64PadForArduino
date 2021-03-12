@@ -23,53 +23,53 @@
  * of reply
  */
 const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE + 1] = {
-  // CMD_POLL - Buffer size required: 8 bytes
-  {8, 0x40, 0x03, 0x02},
+	// CMD_POLL - Buffer size required: 8 bytes
+	{8, 0x40, 0x03, 0x02},
 
-  // CMD_RUMBLE_ON - Do we even have a reply?
-  {1, 0x40, 0x00, 0x01},
+	// CMD_RUMBLE_ON - Do we even have a reply?
+	{1, 0x40, 0x00, 0x01},
 
-  // CMD_RUMBLE_OFF - Ditto
-  {1, 0x40, 0x00, 0x00}
+	// CMD_RUMBLE_OFF - Ditto
+	{1, 0x40, 0x00, 0x00}
 };
 
 bool GCPad::begin () {
-  buttons = 0;
-  x = 0;
-  y = 0;
-  c_x = 0;
-  c_y = 0;
-  left_trigger = 0;
-  right_trigger = 0;
-  
-  last_poll = 0;
+	buttons = 0;
+	x = 0;
+	y = 0;
+	c_x = 0;
+	c_y = 0;
+	left_trigger = 0;
+	right_trigger = 0;
+	
+	last_poll = 0;
 
-  // It seems we need nothing special
-  return true;
+	// It seems we need nothing special
+	return true;
 }
 
 void GCPad::read () {
-  if (last_poll == 0 || millis () - last_poll >= 10) {
-    runCommand (CMD_POLL);
-    
-    // The mask makes sure unused bits are 0, some seem to be always 1
-    buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
-    x = buf[2];
-    y = buf[3];
-    c_x = buf[4];
-    c_y = buf[5];
-    left_trigger = buf[6];
-    right_trigger = buf[7];
+	if (last_poll == 0 || millis () - last_poll >= 10) {
+		runCommand (CMD_POLL);
+		
+		// The mask makes sure unused bits are 0, some seem to be always 1
+		buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
+		x = buf[2];
+		y = buf[3];
+		c_x = buf[4];
+		c_y = buf[5];
+		left_trigger = buf[6];
+		right_trigger = buf[7];
 
-    last_poll = millis ();
-  }
+		last_poll = millis ();
+	}
 }
 
 byte *GCPad::runCommand (const ProtoCommand cmd) {
-  byte *ret = NULL;
-  if (proto.runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0])) {
-	  ret = buf;
-  }
+	byte *ret = NULL;
+	if (proto.runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0])) {
+		ret = buf;
+	}
 
-  return ret;
+	return ret;
 }

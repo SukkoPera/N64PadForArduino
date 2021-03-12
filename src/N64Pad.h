@@ -21,74 +21,74 @@
 
 class N64Pad {
 public:
-  const byte MIN_POLL_INTERVAL_MS = 1000U / 60U;
+	const byte MIN_POLL_INTERVAL_MS = 1000U / 60U;
 
-  enum PadButton {
-    BTN_A       = 1 << 15,
-    BTN_B       = 1 << 14,
-    BTN_Z       = 1 << 13,
-    BTN_START   = 1 << 12,
-    BTN_UP      = 1 << 11,
-    BTN_DOWN    = 1 << 10,
-    BTN_LEFT    = 1 << 9,
-    BTN_RIGHT   = 1 << 8,
-    BTN_LRSTART = 1 << 7,	// This is set when L+R+Start are pressed (and BTN_START is not)
-    /* Unused   = 1 << 6, */
-    BTN_L       = 1 << 5,
-    BTN_R       = 1 << 4,
-    BTN_C_UP    = 1 << 3,
-    BTN_C_DOWN  = 1 << 2,
-    BTN_C_LEFT  = 1 << 1,
-    BTN_C_RIGHT = 1 << 0
-  };
+	enum PadButton {
+		BTN_A       = 1 << 15,
+		BTN_B       = 1 << 14,
+		BTN_Z       = 1 << 13,
+		BTN_START   = 1 << 12,
+		BTN_UP      = 1 << 11,
+		BTN_DOWN    = 1 << 10,
+		BTN_LEFT    = 1 << 9,
+		BTN_RIGHT   = 1 << 8,
+		BTN_LRSTART = 1 << 7,	// This is set when L+R+Start are pressed (and BTN_START is not)
+		/* Unused   = 1 << 6, */
+		BTN_L       = 1 << 5,
+		BTN_R       = 1 << 4,
+		BTN_C_UP    = 1 << 3,
+		BTN_C_DOWN  = 1 << 2,
+		BTN_C_LEFT  = 1 << 1,
+		BTN_C_RIGHT = 1 << 0
+	};
 
-  // Button status register. Use PadButton values to test this. 1 means pressed.
-  uint16_t buttons;
+	// Button status register. Use PadButton values to test this. 1 means pressed.
+	uint16_t buttons;
 
-  /* X-Axis coordinate (Positive RIGHT)
-   *
-   * Range for analog position is -128 to 127, however, true Nintendo 64
-   * controller range is about 63% of it (mechanically limited), so the actual
-   * range is about -81 to 81 (less for worn-out controllers).
-   */
-  int8_t x;
+	/* X-Axis coordinate (Positive RIGHT)
+	 *
+	 * Range for analog position is -128 to 127, however, true Nintendo 64
+	 * controller range is about 63% of it (mechanically limited), so the actual
+	 * range is about -81 to 81 (less for worn-out controllers).
+	 */
+	int8_t x;
 
-  /* Y-Axis Coordinate (Positive UP)
-   *
-   * See the comment about x above
-   */
-  int8_t y;
+	/* Y-Axis Coordinate (Positive UP)
+	 *
+	 * See the comment about x above
+	 */
+	int8_t y;
 
-  // This can also be called anytime to reset the controller
-  bool begin ();
+	// This can also be called anytime to reset the controller
+	bool begin ();
 
-  /* Reads the current state of the joystick.
-   *
-   * Note that this functions disables interrupts and runs for 160+ us!
-   */
-  boolean read ();
+	/* Reads the current state of the joystick.
+	 *
+	 * Note that this functions disables interrupts and runs for 160+ us!
+	 */
+	boolean read ();
 
 private:
-  N64PadProtocol proto;
-  
-  enum ProtoCommand {
-    CMD_IDENTIFY = 0,
-    CMD_POLL,
-    CMD_READ,
-    CMD_WRITE,
-    CMD_RESET,
+	N64PadProtocol proto;
+	
+	enum ProtoCommand {
+		CMD_IDENTIFY = 0,
+		CMD_POLL,
+		CMD_READ,
+		CMD_WRITE,
+		CMD_RESET,
 
-    CMD_NUMBER    // Leave at end
-  };
+		CMD_NUMBER    // Leave at end
+	};
 
-  // First byte is expected reply length, second byte is actual command byte
-  static const byte protoCommands[CMD_NUMBER][1 + 1];
+	// First byte is expected reply length, second byte is actual command byte
+	static const byte protoCommands[CMD_NUMBER][1 + 1];
 
-  // 4 is enough for all our uses
-  byte buf[4];
+	// 4 is enough for all our uses
+	byte buf[4];
 
-  // millis() last time controller was polled
-  unsigned long last_poll;
-  
-  byte *runCommand (const ProtoCommand cmd);
+	// millis() last time controller was polled
+	unsigned long last_poll;
+	
+	byte *runCommand (const ProtoCommand cmd);
 };
