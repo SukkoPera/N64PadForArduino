@@ -43,25 +43,25 @@
 #define SELECT_PIN_BIT PD7
 
 void setup () {
-  DIR1 &= ~MASK1;
-  DIR2 &= ~MASK2;
+	DIR1 &= ~MASK1;
+	DIR2 &= ~MASK2;
 
-  OUTDIR |= OUTMASK;
+	OUTDIR |= OUTMASK;
 
-  SELECT_PIN_DIR &= ~(1 << SELECT_PIN_BIT);
+	SELECT_PIN_DIR &= ~(1 << SELECT_PIN_BIT);
 
-  noInterrupts ();
+	noInterrupts ();
 }
 
 #define NOP __asm__ __volatile__ ("nop\n\t")
 
 void loop () {
-  while (1) {
-    if (SELECT_PIN_PINPORT & (1 << SELECT_PIN_BIT)) {
-      OUTPORT = INPORT2;
-    } else {
-      OUTPORT = INPORT1;
-      NOP;      // Hold for a bit
-    }
-  }
+	while (1) {
+		if (SELECT_PIN_PINPORT & (1 << SELECT_PIN_BIT)) {
+			OUTPORT = INPORT2;
+		} else {
+			OUTPORT = INPORT1;
+			NOP;      // Hold for a bit
+		}
+	}
 }

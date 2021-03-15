@@ -29,16 +29,16 @@
 #include <Joystick.h>
 
 /** \brief Dead zone for analog sticks
- *  
+ *
  * If the analog stick moves less than this value from the center position, it
  * is considered still when it emulates the D-Pad.
- * 
+ *
  * \sa ANALOG_IDLE_VALUE
  */
 const byte ANALOG_DEAD_ZONE = 20U;
 
 /** \brief Analog sticks minimum value
- * 
+ *
  * Minimum value reported by analog sticks. This usually means that the stick is
  * fully either at the top or left position. Note that some sticks might not get
  * fully down to this value.
@@ -54,7 +54,7 @@ const byte ANALOG_DEAD_ZONE = 20U;
 const int8_t ANALOG_MIN_VALUE = -80;
 
 /** \brief Analog sticks maximum value
- * 
+ *
  * Maximum value reported by analog sticks. This usually means that the stick is
  * fully either at the bottom or right position. Note that some sticks might not
  * get fully up to this value.
@@ -65,7 +65,7 @@ const int8_t ANALOG_MIN_VALUE = -80;
 const int8_t ANALOG_MAX_VALUE = 80;
 
 /** \brief Analog sticks idle value
- * 
+ *
  * Value reported when an analog stick is in the (ideal) center position. Note
  * that old and worn-out sticks might not self-center perfectly when released,
  * so you should never rely on this precise value to be reported.
@@ -111,95 +111,95 @@ void flashLed (byte n) {
 }
 
 void setup () {
-  pinMode (LED_BUILTIN, OUTPUT);
+	pinMode (LED_BUILTIN, OUTPUT);
 
-  // Init Joystick library
-  usbStick.begin (false);		// We'll call sendState() manually to minimize lag
-  usbStick.setXAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
-  usbStick.setYAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
-  usbStick.setRxAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
-  usbStick.setRyAxisRange (ANALOG_MAX_VALUE, ANALOG_MIN_VALUE);		// Analog is positive UP on controller, DOWN in joystick library
+	// Init Joystick library
+	usbStick.begin (false);		// We'll call sendState() manually to minimize lag
+	usbStick.setXAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
+	usbStick.setYAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
+	usbStick.setRxAxisRange (ANALOG_MIN_VALUE, ANALOG_MAX_VALUE);
+	usbStick.setRyAxisRange (ANALOG_MAX_VALUE, ANALOG_MIN_VALUE);		// Analog is positive UP on controller, DOWN in joystick library
 }
 
 
 void loop () {
-  static boolean haveController = false;
-  
-  if (!haveController) {
-	if (pad.begin ()) {
-	  // Controller detected!
-      digitalWrite (LED_BUILTIN, HIGH);
-      haveController = true;
-    } else {
-      delay (333);
+	static boolean haveController = false;
+
+	if (!haveController) {
+		if (pad.begin ()) {
+			// Controller detected!
+				digitalWrite (LED_BUILTIN, HIGH);
+				haveController = true;
+			} else {
+				delay (333);
+		}
+	} else {
+		if (!pad.read ()) {
+			// Controller lost :(
+			digitalWrite (LED_BUILTIN, LOW);
+			haveController = false;
+		} else {
+			// Controller was read fine
+			if ((pad.buttons & N64Pad::BTN_LRSTART) != 0) {
+				// This combo toggles mapAnalogToDPad
+				mapAnalogToDPad = !mapAnalogToDPad;
+				flashLed (2 + (byte) mapAnalogToDPad);
+			} else {
+				// Map buttons!
+				usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
+				usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
+				usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
+				usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
+				usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
+				usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
+				usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
+				usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
+				usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
+				usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
+
+				if (!mapAnalogToDPad) {
+					// D-Pad makes up the X/Y axes
+					if ((pad.buttons & N64Pad::BTN_UP) != 0) {
+						usbStick.setYAxis (ANALOG_MIN_VALUE);
+					} else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
+						usbStick.setYAxis (ANALOG_MAX_VALUE);
+					} else {
+						usbStick.setYAxis (ANALOG_IDLE_VALUE);
+					}
+
+					if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
+						usbStick.setXAxis (ANALOG_MIN_VALUE);
+					} else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
+						usbStick.setXAxis (ANALOG_MAX_VALUE);
+					} else {
+						usbStick.setXAxis (ANALOG_IDLE_VALUE);
+					}
+
+					// The analog stick gets mapped to the X/Y rotation axes
+					usbStick.setRxAxis (pad.x);
+					usbStick.setRyAxis (pad.y);
+				} else {
+					// Both the D-Pad and analog stick control the X/Y axes
+					if ((pad.buttons & N64Pad::BTN_UP || pad.y > ANALOG_DEAD_ZONE) != 0) {
+						usbStick.setYAxis (ANALOG_MIN_VALUE);
+					} else if ((pad.buttons & N64Pad::BTN_DOWN || pad.y < -ANALOG_DEAD_ZONE) != 0) {
+						usbStick.setYAxis (ANALOG_MAX_VALUE);
+					} else {
+						usbStick.setYAxis (ANALOG_IDLE_VALUE);
+					}
+
+					if ((pad.buttons & N64Pad::BTN_LEFT || pad.x < -ANALOG_DEAD_ZONE) != 0) {
+						usbStick.setXAxis (ANALOG_MIN_VALUE);
+					} else if ((pad.buttons & N64Pad::BTN_RIGHT || pad.x > ANALOG_DEAD_ZONE) != 0) {
+						usbStick.setXAxis (ANALOG_MAX_VALUE);
+					} else {
+						usbStick.setXAxis (ANALOG_IDLE_VALUE);
+					}
+				}
+
+				// All done, send data for real!
+				usbStick.sendState ();
+			}
+		}
 	}
-  } else {
-    if (!pad.read ()) {
-      // Controller lost :(
-      digitalWrite (LED_BUILTIN, LOW);
-      haveController = false;
-    } else {
-	  // Controller was read fine
-      if ((pad.buttons & N64Pad::BTN_LRSTART) != 0) {
-		  // This combo toggles mapAnalogToDPad
-		  mapAnalogToDPad = !mapAnalogToDPad;
-		  flashLed (2 + (byte) mapAnalogToDPad);
-	  } else {
-	    // Map buttons!
-        usbStick.setButton (0, (pad.buttons & N64Pad::BTN_B) != 0);
-        usbStick.setButton (1, (pad.buttons & N64Pad::BTN_A) != 0);
-        usbStick.setButton (2, (pad.buttons & N64Pad::BTN_C_LEFT) != 0);
-        usbStick.setButton (3, (pad.buttons & N64Pad::BTN_C_DOWN) != 0);
-        usbStick.setButton (4, (pad.buttons & N64Pad::BTN_C_UP) != 0);
-        usbStick.setButton (5, (pad.buttons & N64Pad::BTN_C_RIGHT) != 0);
-        usbStick.setButton (6, (pad.buttons & N64Pad::BTN_L) != 0);
-        usbStick.setButton (7, (pad.buttons & N64Pad::BTN_R) != 0);
-        usbStick.setButton (8, (pad.buttons & N64Pad::BTN_Z) != 0);
-        usbStick.setButton (9, (pad.buttons & N64Pad::BTN_START) != 0);
-  
-        if (!mapAnalogToDPad) {
-  	    // D-Pad makes up the X/Y axes
-          if ((pad.buttons & N64Pad::BTN_UP) != 0) {
-            usbStick.setYAxis (ANALOG_MIN_VALUE);
-          } else if ((pad.buttons & N64Pad::BTN_DOWN) != 0) {
-            usbStick.setYAxis (ANALOG_MAX_VALUE);
-          } else {
-            usbStick.setYAxis (ANALOG_IDLE_VALUE);
-          }
-          
-          if ((pad.buttons & N64Pad::BTN_LEFT) != 0) {
-            usbStick.setXAxis (ANALOG_MIN_VALUE);
-          } else if ((pad.buttons & N64Pad::BTN_RIGHT) != 0) {
-            usbStick.setXAxis (ANALOG_MAX_VALUE);
-          } else {
-            usbStick.setXAxis (ANALOG_IDLE_VALUE);
-          }
-          
-  	    // The analog stick gets mapped to the X/Y rotation axes
-          usbStick.setRxAxis (pad.x);
-          usbStick.setRyAxis (pad.y);
-        } else {
-  		  // Both the D-Pad and analog stick control the X/Y axes
-  		  if ((pad.buttons & N64Pad::BTN_UP || pad.y > ANALOG_DEAD_ZONE) != 0) {
-            usbStick.setYAxis (ANALOG_MIN_VALUE);
-          } else if ((pad.buttons & N64Pad::BTN_DOWN || pad.y < -ANALOG_DEAD_ZONE) != 0) {
-            usbStick.setYAxis (ANALOG_MAX_VALUE);
-          } else {
-            usbStick.setYAxis (ANALOG_IDLE_VALUE);
-          }
-          
-          if ((pad.buttons & N64Pad::BTN_LEFT || pad.x < -ANALOG_DEAD_ZONE) != 0) {
-            usbStick.setXAxis (ANALOG_MIN_VALUE);
-          } else if ((pad.buttons & N64Pad::BTN_RIGHT || pad.x > ANALOG_DEAD_ZONE) != 0) {
-            usbStick.setXAxis (ANALOG_MAX_VALUE);
-          } else {
-            usbStick.setXAxis (ANALOG_IDLE_VALUE);
-          }  
-  	    }
-      
-        // All done, send data for real!
-        usbStick.sendState ();
-      }
-    }
-  }
 }

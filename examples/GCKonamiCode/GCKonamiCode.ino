@@ -27,17 +27,17 @@
 GCPad pad;
 
 void setup () {
-  Serial.begin (115200);
+	Serial.begin (115200);
 
-  Serial.println ("Probing for pad...");
-  if (pad.begin ()) {
-    Serial.println ("Pad detected");
-  }
-  delay (500);
+	Serial.println ("Probing for pad...");
+	if (pad.begin ()) {
+		Serial.println ("Pad detected");
+	}
+	delay (500);
 
-  pinMode (LED_BUILTIN, OUTPUT);
+	pinMode (LED_BUILTIN, OUTPUT);
 
-  Serial.println ("Enter the Konami code on your pad (Up, up, down, down, left, right, left, right, B, A)");
+	Serial.println ("Enter the Konami code on your pad (Up, up, down, down, left, right, left, right, B, A)");
 }
 
 #define KONAMI_SEQ_LEN 10
@@ -56,11 +56,11 @@ word konami_seq[KONAMI_SEQ_LEN] = {
 };
 
 void loop () {
-  static byte konami_cnt = 0;
+	static byte konami_cnt = 0;
 
-  pad.read ();
+	pad.read ();
 
-  digitalWrite (LED_BUILTIN, pad.buttons != 0);
+	digitalWrite (LED_BUILTIN, pad.buttons != 0);
 
 	if (konami_cnt % 2 == 0) {
 		// Wait for next button to be PRESSED alone

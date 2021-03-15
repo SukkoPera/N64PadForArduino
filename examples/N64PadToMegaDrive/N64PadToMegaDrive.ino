@@ -117,51 +117,51 @@
 N64Pad pad;
 
 void setup () {
-  pinMode (LED_PIN, OUTPUT);
+	pinMode (LED_PIN, OUTPUT);
 
-  if (!pad.begin ()) {
-    // Report error, somehow
-    while (1) {
-        digitalWrite (LED_PIN, HIGH);
-        delay (300);
-        digitalWrite (LED_PIN, LOW);
-        delay (700);
-    }
-  }
+	if (!pad.begin ()) {
+		// Report error, somehow
+		while (1) {
+			digitalWrite (LED_PIN, HIGH);
+			delay (300);
+			digitalWrite (LED_PIN, LOW);
+			delay (700);
+		}
+	}
 
-  // Setup pins for MD output
-  DDRD |= ((1 << DDD2) | (1 << DDD3) | (1 << DDD4) | (1 << DDD5));
-  DDRB |= ((1 << DDB2) | (1 << DDB3) | (1 << DDB4) | (1 << DDB5));
-  DDRB |= ((1 << DDB1) | (1 << DDB0));
+	// Setup pins for MD output
+	DDRD |= ((1 << DDD2) | (1 << DDD3) | (1 << DDD4) | (1 << DDD5));
+	DDRB |= ((1 << DDB2) | (1 << DDB3) | (1 << DDB4) | (1 << DDB5));
+	DDRB |= ((1 << DDB1) | (1 << DDB0));
 }
 
 
 // Update as fast as we can
 void loop () {
-  pad.read ();
+	pad.read ();
 
-  /* To understand this, keep in mind that the MegaDrive uses the LOW state to
-   * indicate that a button is pressed, and review De Morgan's laws
-   */
-  PORTB = (PORTB & 0xFC)
-        | (pad.y < MIN_Y_OFFSET && ((pad.buttons & N64Pad::BTN_UP) == 0)) << PB0
-        | (pad.y > -MIN_Y_OFFSET && ((pad.buttons & N64Pad::BTN_DOWN) == 0)) << PB1
-        ;
+	/* To understand this, keep in mind that the MegaDrive uses the LOW state to
+	 * indicate that a button is pressed, and review De Morgan's laws
+	 */
+	PORTB = (PORTB & 0xFC)
+	      | (pad.y < MIN_Y_OFFSET && ((pad.buttons & N64Pad::BTN_UP) == 0)) << PB0
+	      | (pad.y > -MIN_Y_OFFSET && ((pad.buttons & N64Pad::BTN_DOWN) == 0)) << PB1
+	      ;
 
-  // This is the set of outputs to send the MegaDrive when SELECT is LOW
-  PORTD = (PORTD & 0xC3)
-        | ((pad.buttons & (N64Pad::BTN_A | N64Pad::BTN_L)) == 0) << PD4
-        | ((pad.buttons & N64Pad::BTN_START) == 0) << PD5
-        ;
+	// This is the set of outputs to send the MegaDrive when SELECT is LOW
+	PORTD = (PORTD & 0xC3)
+	      | ((pad.buttons & (N64Pad::BTN_A | N64Pad::BTN_L)) == 0) << PD4
+	      | ((pad.buttons & N64Pad::BTN_START) == 0) << PD5
+	      ;
 
-  // This is the set of outputs to send the MegaDrive when SELECT is HIGH
-  PORTB = (PORTB & 0xC3)
-        | (pad.x > -MIN_X_OFFSET && ((pad.buttons & N64Pad::BTN_LEFT) == 0)) << PB2
-        | (pad.x < MIN_X_OFFSET && ((pad.buttons & N64Pad::BTN_RIGHT) == 0)) << PB3
-        | ((pad.buttons & (N64Pad::BTN_B | N64Pad::BTN_R)) == 0) << PB4
-        | ((pad.buttons & (N64Pad::BTN_C_UP | N64Pad::BTN_C_DOWN | N64Pad::BTN_C_LEFT | N64Pad::BTN_C_RIGHT | N64Pad::BTN_Z)) == 0) << PB5
-        ;
-
-  // Blink led with buttons
-  digitalWrite (LED_PIN, pad.buttons != 0);
+	// This is the set of outputs to send the MegaDrive when SELECT is HIGH
+	PORTB = (PORTB & 0xC3)
+	      | (pad.x > -MIN_X_OFFSET && ((pad.buttons & N64Pad::BTN_LEFT) == 0)) << PB2
+	      | (pad.x < MIN_X_OFFSET && ((pad.buttons & N64Pad::BTN_RIGHT) == 0)) << PB3
+	      | ((pad.buttons & (N64Pad::BTN_B | N64Pad::BTN_R)) == 0) << PB4
+	      | ((pad.buttons & (N64Pad::BTN_C_UP | N64Pad::BTN_C_DOWN | N64Pad::BTN_C_LEFT | N64Pad::BTN_C_RIGHT | N64Pad::BTN_Z)) == 0) << PB5
+	      ;
+		  
+	// Blink led with buttons
+	digitalWrite (LED_PIN, pad.buttons != 0);
 }

@@ -56,66 +56,66 @@
 GCPad pad;
 
 void setup () {
-  Serial.begin (115200);
+	Serial.begin (115200);
 
-  Serial.println ("Probing for pad...");
-  if (pad.begin ()) {
-    Serial.println ("Pad detected");
-  }
-  delay (500);
+	Serial.println ("Probing for pad...");
+	if (pad.begin ()) {
+		Serial.println ("Pad detected");
+	}
+	delay (500);
 
-  pinMode (LED_BUILTIN, OUTPUT);
+	pinMode (LED_BUILTIN, OUTPUT);
 }
 
 
 void loop () {
-  pad.read ();
+	pad.read ();
 
-  digitalWrite (LED_BUILTIN, pad.buttons != 0);
+	digitalWrite (LED_BUILTIN, pad.buttons != 0);
 
-  Serial.print ("Pressed: ");
-  if (pad.buttons & GCPad::BTN_A)
-    Serial.print ("A ");
-  if (pad.buttons & GCPad::BTN_B)
-    Serial.print ("B ");
-  if (pad.buttons & GCPad::BTN_X)
-    Serial.print ("X ");
-  if (pad.buttons & GCPad::BTN_Y)
-    Serial.print ("Y ");
-  if (pad.buttons & GCPad::BTN_Z)
-    Serial.print ("Z ");
-  if (pad.buttons & GCPad::BTN_START)
-    Serial.print ("Start ");
-  if (pad.buttons & GCPad::BTN_D_UP)
-    Serial.print ("Up ");
-  if (pad.buttons & GCPad::BTN_D_DOWN)
-    Serial.print ("Down ");
-  if (pad.buttons & GCPad::BTN_D_LEFT)
-    Serial.print ("Left ");
-  if (pad.buttons & GCPad::BTN_D_RIGHT)
-    Serial.print ("Right ");
-  if (pad.buttons & GCPad::BTN_L)
-    Serial.print ("L ");
-  if (pad.buttons & GCPad::BTN_R)
-    Serial.print ("R ");
-  Serial.println ("");
+	Serial.print ("Pressed: ");
+	if (pad.buttons & GCPad::BTN_A)
+		Serial.print ("A ");
+	if (pad.buttons & GCPad::BTN_B)
+		Serial.print ("B ");
+	if (pad.buttons & GCPad::BTN_X)
+		Serial.print ("X ");
+	if (pad.buttons & GCPad::BTN_Y)
+		Serial.print ("Y ");
+	if (pad.buttons & GCPad::BTN_Z)
+		Serial.print ("Z ");
+	if (pad.buttons & GCPad::BTN_START)
+		Serial.print ("Start ");
+	if (pad.buttons & GCPad::BTN_D_UP)
+		Serial.print ("Up ");
+	if (pad.buttons & GCPad::BTN_D_DOWN)
+		Serial.print ("Down ");
+	if (pad.buttons & GCPad::BTN_D_LEFT)
+		Serial.print ("Left ");
+	if (pad.buttons & GCPad::BTN_D_RIGHT)
+		Serial.print ("Right ");
+	if (pad.buttons & GCPad::BTN_L)
+		Serial.print ("L ");
+	if (pad.buttons & GCPad::BTN_R)
+		Serial.print ("R ");
+	Serial.println ("");
 
-  Serial.print ("X = ");
-  Serial.println (pad.x);
-  Serial.print ("Y = ");
-  Serial.println (pad.y);
-  
-  Serial.print ("C-Stick X = ");
-  Serial.println (pad.c_x);
-  Serial.print ("C-Stick Y = ");
-  Serial.println (pad.c_y);
-  
-  Serial.print ("Left Trigger = ");
-  Serial.println (pad.left_trigger);
-  Serial.print ("Right Trigger = ");
-  Serial.println (pad.right_trigger);
-  
-  Serial.println ("");
-  
-  delay (1000);
+	Serial.print ("X = ");
+	Serial.println (pad.x);
+	Serial.print ("Y = ");
+	Serial.println (pad.y);
+	
+	Serial.print ("C-Stick X = ");
+	Serial.println (pad.c_x);
+	Serial.print ("C-Stick Y = ");
+	Serial.println (pad.c_y);
+	
+	Serial.print ("Left Trigger = ");
+	Serial.println (pad.left_trigger);
+	Serial.print ("Right Trigger = ");
+	Serial.println (pad.right_trigger);
+	
+	Serial.println ("");
+	
+	delay (1000);
 }
