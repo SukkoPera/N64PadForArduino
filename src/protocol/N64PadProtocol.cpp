@@ -90,8 +90,9 @@ ISR (TIMER1_OVF_vect) {
 void N64PadProtocol::begin () {
 	// Prepare interrupts: INT0 is triggered by pin 2 FALLING
 	noInterrupts ();
-	EICRA |= (1 << ISC01);
-	EICRA &= ~(1 << ISC00);
+	//~ EICRA |= (1 << ISC01);
+	//~ EICRA &= ~(1 << ISC00);
+	PCMSK0 |= (1 << PCINT4);
 	interrupts ();
 	// Do not enable INT0 here!
 
@@ -108,12 +109,15 @@ void N64PadProtocol::begin () {
 }
 
 inline void N64PadProtocol::enableInterrupt () {
-	EIFR |= (1 << INTF0);
-	EIMSK |= (1 << INT0);
+	//~ EIFR |= (1 << INTF0);
+	//~ EIMSK |= (1 << INT0);
+	PCIFR |= (1 << PCIF0);
+	PCICR |= (1 << PCIE0);
 }
 
 inline void N64PadProtocol::disableInterrupt () {
-	EIMSK &= ~(1 << INT0);
+	//~ EIMSK &= ~(1 << INT0);
+	PCICR &= ~(1 << PCIE0);
 }
 
 inline void N64PadProtocol::startTimer () {

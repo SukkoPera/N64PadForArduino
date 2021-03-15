@@ -33,10 +33,15 @@
 	#define PAD_BIT PD2
 #elif defined (__AVR_ATmega32U4__)
 	// Pin 3
-	#define PAD_DIR DDRD
-	#define PAD_OUTPORT PORTD
-	#define PAD_INPORT PIND
-	#define PAD_BIT PD0
+	//~ #define PAD_DIR DDRD
+	//~ #define PAD_OUTPORT PORTD
+	//~ #define PAD_INPORT PIND
+	//~ #define PAD_BIT PD0
+	// Pin 8
+	#define PAD_DIR DDRB
+	#define PAD_OUTPORT PORTB
+	#define PAD_INPORT PINB
+	#define PAD_BIT PB4
 #else
   // At least for the moment...
   #error “This library is not currently supported on this platform”
