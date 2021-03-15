@@ -48,21 +48,25 @@ bool GCPad::begin () {
 	return true;
 }
 
-void GCPad::read () {
+boolean GCPad::read () {
+	boolean ret = true;
+	
 	if (last_poll == 0 || millis () - last_poll >= 10) {
-		runCommand (CMD_POLL);
-		
-		// The mask makes sure unused bits are 0, some seem to be always 1
-		buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
-		x = buf[2];
-		y = buf[3];
-		c_x = buf[4];
-		c_y = buf[5];
-		left_trigger = buf[6];
-		right_trigger = buf[7];
+		if ((ret = (runCommand (CMD_POLL) != NULL))) {
+			// The mask makes sure unused bits are 0, some seem to be always 1
+			buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
+			x = buf[2];
+			y = buf[3];
+			c_x = buf[4];
+			c_y = buf[5];
+			left_trigger = buf[6];
+			right_trigger = buf[7];
 
-		last_poll = millis ();
+			last_poll = millis ();
+		}
 	}
+
+	return ret;
 }
 
 byte *GCPad::runCommand (const ProtoCommand cmd) {
