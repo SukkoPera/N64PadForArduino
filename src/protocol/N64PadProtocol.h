@@ -35,11 +35,30 @@ public:
 	static void stopTimer ();
 
 private:
-	static void enableInterrupt ();
+	byte pin;
+	byte bitMask;
 
-	static void disableInterrupt ();
+	volatile byte *portReg;
+	volatile byte *dirReg;
+	volatile byte *pinReg;
+
+	volatile byte *pcicrReg;
+	byte pcicrBitMask;
+	volatile byte *pcint_maskreg;
+	byte pcint_maskvalue;
+
+	void enableInterrupt ();
+	void disableInterrupt ();
 
 	static void startTimer ();
+
+	void sendLow ();
+	void sendHigh ();
+	void sendZero ();
+	void sendOne ();
+	void sendStop ();
+
+	void sendCmd (const byte *cmdbuf, const byte cmdsz);
 };
 
 #endif

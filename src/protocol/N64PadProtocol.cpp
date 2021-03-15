@@ -43,7 +43,7 @@
 UsbPause usbMagic;
 #endif
 
-
+#include <Arduino.h>
 #include "N64PadProtocol.h"
 #include "pinconfig.h"
 
@@ -88,13 +88,21 @@ ISR (TIMER1_OVF_vect) {
 #endif
 
 void N64PadProtocol::begin () {
-	// Prepare interrupts: INT0 is triggered by pin 2 FALLING
-	noInterrupts ();
-	//~ EICRA |= (1 << ISC01);
-	//~ EICRA &= ~(1 << ISC00);
-	PCMSK0 |= (1 << PCINT4);
-	interrupts ();
-	// Do not enable INT0 here!
+	const byte pin = 8;
+	const byte port = digitalPinToPort (pin);
+	bitMask = digitalPinToBitMask (pin);
+	portReg = portOutputRegister (port);
+	dirReg = portModeRegister (port);
+	pinReg = portInputRegister (port);      // PinReg is the input register, not the Arduino pin.
+
+	// Pin-Change Interrupt control registers
+	pcicrReg = digitalPinToPCICR (pin);
+	pcicrBitMask = 1 << digitalPinToPCICRbit (pin);
+	pcint_maskreg = digitalPinToPCMSK (pin);
+	pcint_maskvalue = 1 << digitalPinToPCMSKbit (pin);
+  
+	// Prepare pin-change interrupt - But do not enable it!
+	*pcint_maskreg |= pcint_maskvalue;
 
 #ifdef DISABLE_MILLIS
 	// Prepare timer 1
@@ -105,19 +113,19 @@ void N64PadProtocol::begin () {
 #endif
 
 	// Signalling output
-	DDRC |= (1 << DDC7);
+	//~ DDRC |= (1 << DDC7);
 }
 
 inline void N64PadProtocol::enableInterrupt () {
-	//~ EIFR |= (1 << INTF0);
-	//~ EIMSK |= (1 << INT0);
-	PCIFR |= (1 << PCIF0);
-	PCICR |= (1 << PCIE0);
+	// This does not look necessary, but let's leave it here just in case...
+	//~ PCIFR |= (1 << PCIF0);
+	//~ PCIFR |= pcicrBitMask;
+	
+	*pcicrReg |= pcicrBitMask;
 }
 
 inline void N64PadProtocol::disableInterrupt () {
-	//~ EIMSK &= ~(1 << INT0);
-	PCICR &= ~(1 << PCIE0);
+	*pcicrReg &= ~pcicrBitMask;
 }
 
 inline void N64PadProtocol::startTimer () {
@@ -131,18 +139,18 @@ inline void N64PadProtocol::stopTimer () {
 	TIMSK1 &= ~(1 << TOIE1);					// Do not retrigger
 }
 
-inline static void sendLow () {
+inline void N64PadProtocol::sendLow () {
 	// Switch pin to output mode, it will be low by default
-	PAD_DIR |= (1 << PAD_BIT);
+	*dirReg |= bitMask;
 }
 
-inline static void sendHigh () {
+inline void N64PadProtocol::sendHigh () {
 	// Switch pin to input mode (Hi-Z), pullups will be disabled by default
-	PAD_DIR &= ~(1 << PAD_BIT);
+	*dirReg &= ~bitMask;
 }
 
 // To send a 0 bit the data line is pulled low for 3us and let high for 1us
-inline static void sendZero () {
+inline void N64PadProtocol::sendZero () {
 	sendLow ();
 	delay3us ();
 	sendHigh ();
@@ -150,7 +158,7 @@ inline static void sendZero () {
 }
 
 // To send a 1 the data line is pulled low for 1us and let high for 3us
-inline static void sendOne () {
+inline void N64PadProtocol::sendOne () {
 	sendLow ();
 	delay1us ();
 	sendHigh ();
@@ -158,7 +166,7 @@ inline static void sendOne () {
 }
 
 // "Console stop bit" is line low for 1us, and high for 2us (3us total).
-inline static void sendStop () {
+inline void N64PadProtocol::sendStop () {
 	sendLow ();
 	delay1us ();
 	sendHigh ();
@@ -171,8 +179,10 @@ inline static void sendStop () {
 	//~ delay05us ();
 }
 
-// This must be implemented like this, as it cannot be too slow, or the controller won't recognize the signal
-inline static void sendCmd (const byte *cmdbuf, const byte cmdsz) {
+/* This must be implemented like this, as it cannot be too slow, or the
+ * controller won't recognize the signal
+ */
+inline void N64PadProtocol::sendCmd (const byte *cmdbuf, const byte cmdsz) {
 	for (byte j = 0; j < cmdsz; j++) {
 		byte cmdbyte = cmdbuf[j];
 		for (byte i = 0; i < 8; i++) {
@@ -233,8 +243,9 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 #else
 		&& !timeout
 #endif
-	)
-	;
+	) {
+		// Just wait ;)
+	}
 
 	// Done, ISRs are no longer needed
 #ifdef DISABLE_MILLIS
