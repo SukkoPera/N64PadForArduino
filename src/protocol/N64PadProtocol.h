@@ -17,24 +17,29 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
+#ifndef N64PADPROTOCOL_INCLUDED
+#define N64PADPROTOCOL_INCLUDED
+
 #include <Arduino.h>
 
 class N64PadProtocol {
 public:
 	void begin ();
 
-  /* NOTE: This disables interrupts and runs for ~30 us per byte to
-   * exchange!
-   */
-  boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
+	/* NOTE: This disables interrupts and runs for ~30 us per byte to
+	 * exchange!
+	 */
+	boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz);
 
-  // Needs to be public as called from ISR
-  static void stopTimer ();
+	// Needs to be public as called from ISR
+	static void stopTimer ();
 
 private:
-  static void enableInterrupt ();
+	static void enableInterrupt ();
 
-  static void disableInterrupt ();
+	static void disableInterrupt ();
 
-  static void startTimer ();
+	static void startTimer ();
 };
+
+#endif
