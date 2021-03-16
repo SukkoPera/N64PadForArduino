@@ -52,7 +52,7 @@ N64Pad pad;
 void setup () {
 	Serial.begin (115200);
 	while (!Serial)
-	;
+		;
 
 	Serial.println ("Ready!");
 }
@@ -66,11 +66,11 @@ void loop () {
 	if (!haveController) {
 		if (pad.begin ()) {
 			// Controller detected!
-				digitalWrite (LED_BUILTIN, HIGH);
-				Serial.println (F("Controller found!"));
-				haveController = true;
-			} else {
-				delay (333);
+			digitalWrite (LED_BUILTIN, HIGH);
+			Serial.println (F("Controller found!"));
+			haveController = true;
+		} else {
+			delay (333);
 		}
 	} else {
 		if (!pad.read ()) {
@@ -82,33 +82,33 @@ void loop () {
 			if (pad.buttons != oldButtons || pad.x != oldX || pad.y != oldY) {
 				Serial.print ("Pressed: ");
 				if (pad.buttons & N64Pad::BTN_A)
-				Serial.print ("A ");
+					Serial.print ("A ");
 				if (pad.buttons & N64Pad::BTN_B)
-				Serial.print ("B ");
+					Serial.print ("B ");
 				if (pad.buttons & N64Pad::BTN_Z)
-				Serial.print ("Z ");
+					Serial.print ("Z ");
 				if (pad.buttons & N64Pad::BTN_START)
-				Serial.print ("Start ");
+					Serial.print ("Start ");
 				if (pad.buttons & N64Pad::BTN_UP)
-				Serial.print ("Up ");
+					Serial.print ("Up ");
 				if (pad.buttons & N64Pad::BTN_DOWN)
-				Serial.print ("Down ");
+					Serial.print ("Down ");
 				if (pad.buttons & N64Pad::BTN_LEFT)
-				Serial.print ("Left ");
+					Serial.print ("Left ");
 				if (pad.buttons & N64Pad::BTN_RIGHT)
-				Serial.print ("Right ");
+					Serial.print ("Right ");
 				if (pad.buttons & N64Pad::BTN_L)
-				Serial.print ("L ");
+					Serial.print ("L ");
 				if (pad.buttons & N64Pad::BTN_R)
-				Serial.print ("R ");
+					Serial.print ("R ");
 				if (pad.buttons & N64Pad::BTN_C_UP)
-				Serial.print ("C_Up ");
+					Serial.print ("C_Up ");
 				if (pad.buttons & N64Pad::BTN_C_DOWN)
-				Serial.print ("C_Down ");
+					Serial.print ("C_Down ");
 				if (pad.buttons & N64Pad::BTN_C_LEFT)
-				Serial.print ("C_Left ");
+					Serial.print ("C_Left ");
 				if (pad.buttons & N64Pad::BTN_C_RIGHT)
-				Serial.print ("C_Right ");
+					Serial.print ("C_Right ");
 				Serial.println ("");
 		
 				Serial.print ("X = ");
