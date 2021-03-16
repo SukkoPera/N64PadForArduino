@@ -60,7 +60,7 @@ public:
 	int8_t y;
 
 	// This can also be called anytime to reset the controller
-	bool begin ();
+	boolean begin ();
 
 	/* Reads the current state of the joystick.
 	 *

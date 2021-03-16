@@ -39,7 +39,7 @@ const byte N64Pad::protoCommands[CMD_NUMBER][1 + 1] = {
 	{3, 0xFF}
 };
 
-bool N64Pad::begin () {
+boolean N64Pad::begin () {
 	proto.begin ();
 
 	buttons = 0;

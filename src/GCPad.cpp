@@ -33,7 +33,7 @@ const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE + 1] = {
 	{1, 0x40, 0x00, 0x00}
 };
 
-bool GCPad::begin () {
+boolean GCPad::begin () {
 	buttons = 0;
 	x = 0;
 	y = 0;
