@@ -44,5 +44,5 @@
 	#define PAD_BIT PB4
 #else
   // At least for the moment...
-  #error “This library is not currently supported on this platform”
+  #error "This library is not currently supported on this platform"
 #endif
