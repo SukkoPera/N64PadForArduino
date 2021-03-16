@@ -22,7 +22,7 @@
 
 .extern repbuf2
 
-.global PCINT0_vect
+.global PCINT_VECTOR
 
 #define REG_DATA _SFR_IO_ADDR (GPIOR0)
 #define REG_CURBIT _SFR_IO_ADDR (GPIOR1)
@@ -37,7 +37,7 @@
 ; Disable
 #define SIGNAL
 
-PCINT0_vect:
+PCINT_VECTOR:
     ; PCINTs are called for both edges, so make sure we're on the right one
     sbic _SFR_IO_ADDR (PAD_INPORT), PAD_BIT
     reti
