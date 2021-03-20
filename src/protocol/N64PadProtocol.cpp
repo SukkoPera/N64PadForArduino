@@ -47,6 +47,15 @@ UsbPause usbMagic;
 #include "N64PadProtocol.h"
 #include "pinconfig.h"
 
+/* A read will be considered failed if it hasn't completed within this amount of
+ * microseconds. The N64/GC protocol takes 4us per bit. The longest command
+ * reply we support is GC's poll command which returns 8 bytes, so this must be
+ * at least 8 * 8 * 4 = 256 us plus some margin. Note that this is only used
+ * when DISABLE_MILLIS is NOT defined, when it is a hw timer is used, which is
+ * initialized in begin(), so if you change this make sure to tune the value
+ * there accordingly, too.
+ */
+#define COMMAND_TIMEOUT 300
 
 // Delay 62.5ns on a 16MHz AtMega
 #define NOP __asm__ __volatile__ ("nop\n\t")
@@ -82,7 +91,7 @@ static volatile byte *curBit = &GPIOR1;
 #ifdef DISABLE_MILLIS
 static volatile boolean timeout = false;
 
-ISR (TIMER1_OVF_vect) {
+ISR (TIMER1_COMPA_vect) {
 	N64PadProtocol::stopTimer ();
 }
 #endif
@@ -97,15 +106,18 @@ void N64PadProtocol::begin () {
 	// Do not enable INT0 here!
 
 #ifdef DISABLE_MILLIS
-	// Prepare timer 1
+	/* Since we disable the timer interrupt we need some other way to trigger a
+	 * read timeout, let's use timer 1
+	 */
 	TCCR1A = 0;
 	TCCR1B = 0;
-	TCCR1B |= (1 << CS11) | (1 << CS10);	// Prescaler = 64 -> 262ms
-	TIFR1 |= (1 << TOV1);					// Clear pending interrupt, if any
+	TCCR1B |= (1 << WGM12);					// Clear Timer on Compare (CTC)
+	TCCR1B |= (1 << CS10);					// Prescaler = 1
+	OCR1A = 4799;							// 16000000/((4799+1)*1) => 3333Hz/300us
 #endif
 
 	// Signalling output
-	DDRC |= (1 << DDC7);
+	//~ DDRC |= (1 << DDC7);
 }
 
 inline void N64PadProtocol::enableInterrupt () {
@@ -123,12 +135,13 @@ inline void N64PadProtocol::disableInterrupt () {
 inline void N64PadProtocol::startTimer () {
 	timeout = false;
 	TCNT1 = 0;								// counter = 0
-	TIMSK1 |= (1 << TOIE1);					// Trigger ISR on overflow
+	TIFR1 |= (1 << OCF1A);					// Clear pending interrupt, if any
+	TIMSK1 |= (1 << OCIE1A);				// Trigger ISR on output Compare Match A
 }
 
 inline void N64PadProtocol::stopTimer () {
 	timeout = true;
-	TIMSK1 &= ~(1 << TOIE1);					// Do not retrigger
+	TIMSK1 &= ~(1 << OCIE1A);					// Do not retrigger
 }
 
 inline static void sendLow () {
@@ -203,7 +216,7 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 	TIFR0 |= (1 << OCF0B) | (1 << OCF0A) | (1 << TOV0);
 	interrupts ();
 #else
-	unsigned long start = millis ();
+	unsigned long start = micros ();
 #endif
 
 #ifdef DISABLE_USART
@@ -229,7 +242,7 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 	// OK, just wait for the reply buffer to fill at last
 	while (*curByte < repsz
 #ifndef DISABLE_MILLIS
-		&& millis () - start <= 200
+		&& micros () - start <= COMMAND_TIMEOUT
 #else
 		&& !timeout
 #endif
