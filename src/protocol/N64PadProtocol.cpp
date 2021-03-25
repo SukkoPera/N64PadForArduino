@@ -99,11 +99,14 @@ ISR (TIMER1_COMPA_vect) {
 void N64PadProtocol::begin () {
 	// Prepare interrupts: INT0 is triggered by pin 2 FALLING
 	noInterrupts ();
-	//~ EICRA |= (1 << ISC01);
-	//~ EICRA &= ~(1 << ISC00);
+#ifdef N64PAD_USE_INTX
+	EICRA |= (1 << ISC01);
+	EICRA &= ~(1 << ISC00);
+#elif defined (N64PAD_USE_PCINT)
 	PCMSK0 |= (1 << PCINT4);
+#endif
 	interrupts ();
-	// Do not enable INT0 here!
+	// Do not enable interrupt here!
 
 #ifdef DISABLE_MILLIS
 	/* Since we disable the timer interrupt we need some other way to trigger a
@@ -121,15 +124,21 @@ void N64PadProtocol::begin () {
 }
 
 inline void N64PadProtocol::enableInterrupt () {
-	//~ EIFR |= (1 << INTF0);
-	//~ EIMSK |= (1 << INT0);
+#ifdef N64PAD_USE_INTX
+	EIFR |= (1 << INTF0);
+	EIMSK |= (1 << INT0);
+#elif defined (N64PAD_USE_PCINT)
 	PCIFR |= (1 << PCIF0);
 	PCICR |= (1 << PCIE0);
+#endif
 }
 
 inline void N64PadProtocol::disableInterrupt () {
-	//~ EIMSK &= ~(1 << INT0);
+#ifdef N64PAD_USE_INTX
+	EIMSK &= ~(1 << INT0);
+#elif defined (N64PAD_USE_PCINT)
 	PCICR &= ~(1 << PCIE0);
+#endif
 }
 
 inline void N64PadProtocol::startTimer () {

@@ -40,17 +40,21 @@
 	#define PAD_BIT PD2
 	#define PCINT_VECTOR PCINT2_vect
 #elif defined (__AVR_ATmega32U4__)
-	// Pin 3
-	//~ #define PAD_DIR DDRD
-	//~ #define PAD_OUTPORT PORTD
-	//~ #define PAD_INPORT PIND
-	//~ #define PAD_BIT PD0
-	// Pin 8
-	#define PAD_DIR DDRB
-	#define PAD_OUTPORT PORTB
-	#define PAD_INPORT PINB
-	#define PAD_BIT PB4
-	#define PCINT_VECTOR PCINT0_vect
+	// Pin 3, INT0
+	#define PAD_DIR DDRD
+	#define PAD_OUTPORT PORTD
+	#define PAD_INPORT PIND
+	#define PAD_BIT PD0
+	#define N64PAD_USE_INTX
+	#define N64PAD_INT_VECTOR INT0_vect
+
+	// Pin 8, PCINT
+	//~ #define PAD_DIR DDRB
+	//~ #define PAD_OUTPORT PORTB
+	//~ #define PAD_INPORT PINB
+	//~ #define PAD_BIT PB4
+	//~ #define N64PAD_USE_PCINT
+	//~ #define N64PAD_INT_VECTOR PCINT0_vect
 #else
   // At least for the moment...
   #error "This library is not currently supported on this platform"
