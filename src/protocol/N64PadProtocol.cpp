@@ -99,12 +99,7 @@ ISR (TIMER1_COMPA_vect) {
 void N64PadProtocol::begin () {
 	// Prepare interrupts: INT0 is triggered by pin 2 FALLING
 	noInterrupts ();
-#ifdef N64PAD_USE_INTX
-	EICRA |= (1 << ISC01);
-	EICRA &= ~(1 << ISC00);
-#elif defined (N64PAD_USE_PCINT)
-	PCMSK0 |= (1 << PCINT4);
-#endif
+	prepareInterrupt ();
 	interrupts ();
 	// Do not enable interrupt here!
 
@@ -123,34 +118,20 @@ void N64PadProtocol::begin () {
 	//~ DDRC |= (1 << DDC7);
 }
 
-inline void N64PadProtocol::enableInterrupt () {
-#ifdef N64PAD_USE_INTX
-	EIFR |= (1 << INTF0);
-	EIMSK |= (1 << INT0);
-#elif defined (N64PAD_USE_PCINT)
-	PCIFR |= (1 << PCIF0);
-	PCICR |= (1 << PCIE0);
-#endif
-}
-
-inline void N64PadProtocol::disableInterrupt () {
-#ifdef N64PAD_USE_INTX
-	EIMSK &= ~(1 << INT0);
-#elif defined (N64PAD_USE_PCINT)
-	PCICR &= ~(1 << PCIE0);
-#endif
-}
-
 inline void N64PadProtocol::startTimer () {
+#ifdef DISABLE_MILLIS
 	timeout = false;
 	TCNT1 = 0;								// counter = 0
 	TIFR1 |= (1 << OCF1A);					// Clear pending interrupt, if any
 	TIMSK1 |= (1 << OCIE1A);				// Trigger ISR on output Compare Match A
+#endif
 }
 
 inline void N64PadProtocol::stopTimer () {
+#ifdef DISABLE_MILLIS
 	timeout = true;
 	TIMSK1 &= ~(1 << OCIE1A);					// Do not retrigger
+#endif
 }
 
 inline static void sendLow () {
@@ -245,7 +226,7 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 	// We can send the command now
 	sendCmd (cmdbuf, cmdsz);
 
-	// Enable INT0 handling - QUICK!!!
+	// Enable interrupt handling - QUICK!!!
 	enableInterrupt ();
 
 	// OK, just wait for the reply buffer to fill at last

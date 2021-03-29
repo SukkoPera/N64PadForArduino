@@ -35,10 +35,6 @@ public:
 	static void stopTimer ();
 
 private:
-	static void enableInterrupt ();
-
-	static void disableInterrupt ();
-
 	static void startTimer ();
 };
 
