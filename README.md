@@ -11,7 +11,7 @@ It does NOT allow interacting with the Memory Pak on N64 controllers nor driving
 ## Using the Library
 The N64/GC protocol only uses a single data pin, which is driven in an open-collector fashion.
 
-The N64 protocol is so fast that the only reliable way to decode it on a 16 MHz Arduino is using interrupts and an ISR written in assembly language. The library supports both *external* interrupts (i.e.: INT0, INT1, etc.) and *pin-change* interrupts (PCINT0, PCINT1, etc.), so you can use almost any pin. The biggest drawback is that you must choose your pin at compile time. This can be done in the [pinconfig.h file](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/pinconfig.h). By default, it will use pin 2 on an Arduino Uno and pin 3 on a Leonardo. (On a side note, I have tried to get rid of this restriction, I succeeded for the C part but I never managed to make the assembly part fast enough, with PCINTs; feel free to try and submit a Pull Request though :)).
+The N64 protocol is so fast that the only reliable way to decode it on a 16 MHz Arduino is using interrupts and an ISR written in assembly language. The library supports both *external* interrupts (i.e.: INT0, INT1, etc.) and *pin-change* interrupts (PCINT0, PCINT1, etc.), so you can use almost any pin. The biggest drawback is that you must choose your pin at compile time. This can be done in the [pinconfig.h file](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/pinconfig.h). By default, it will use pin 3 on all the supported platforms (Uno/Nano/Leonardo/Mega). (On a side note, I have tried to get rid of this restriction, I succeeded for the C part but I never managed to make the assembly part fast enough, with PCINTs; feel free to try and submit a Pull Request though :)).
 
 On the Leonardo, the library will also use Timer1, since it needs to disable the Timer0 interrupt (the one used by `millis()`) while it's talking with the controller for reliability reasons.
 
@@ -32,14 +32,14 @@ You will NOT need any level translator for the data pin. This is because the pin
 ### GameCube
 ![GameCube Pinout](extras/GameCubeControllerPinout.jpg)
 
-NOTE: The 5V pin on GC controllers seems to only be used to power the rumble motors. Since this library doesn't currently support them, it can be left unconnected.
+NOTE: The 5V pin seems to only be used to power the rumble motors. Since this library doesn't currently support them, it can be left unconnected.
 
 ## Compatibility List
 N64PadForArduino was primarily tested with official Nintendo controllers, but it aims to be compatible with all devices. If you find one that doesn't work, please open an issue and I'll do my best to add support for it.
 
-Regarding Arduino boards, it was tested on the Uno and Leonardo. Other AVR-based boards (Mega?) should work, but the library might need some tailoring regarding interrupt setup.
+Regarding Arduino boards, it was tested on the Uno, Leonardo and Mega. Other AVR-based boards should work, but the library might need some tailoring regarding interrupt setup.
 
-It will NOT work on the ESP8266 and ESP32, as the ISR is written in assembly. Those CPUs are faster though, and might be got to work without using interrupts.
+It will NOT work on the ESP8266 and ESP32, as the ISR is written in assembly.
 
 ## Releases
 If you want to use this library, you are recommended to get [the latest release](https://github.com/SukkoPera/N64PadForArduino/releases) rather than the current git version, as the latter might be under development and is not guaranteed to be working.
@@ -52,6 +52,6 @@ N64PadForArduino is released under the GNU General Public License (GPL) v3. If y
 N64PadForArduino is provided to you ‘as is’ and without any express or implied warranties whatsoever with respect to its functionality, operability or use, including, without limitation, any implied warranties of merchantability, fitness for a particular purpose or infringement. We expressly disclaim any liability whatsoever for any direct, indirect, consequential, incidental or special damages, including, without limitation, lost revenues, lost profits, losses resulting from business interruption or loss of data, regardless of the form of action or legal theory under which the liability may be asserted, even if advised of the possibility or likelihood of such damages.
 
 ## Thanks
-- [James Ward](http://www.int03.co.uk/crema/hardware/gamecube/gc-control.htm)
 - [Andrew](https://www.mixdown.ca/n64dev/)
+- [James Ward](http://www.int03.co.uk/crema/hardware/gamecube/gc-control.htm)
 - All the other guys who helped understand how the N64/GC controller protocol works.
