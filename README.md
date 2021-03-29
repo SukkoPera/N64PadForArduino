@@ -6,12 +6,12 @@ The N64/GC controller protocol is pretty fast, as every bit is 4 microseconds lo
 ## Features
 Currently, N64PadForArduino provides access to all buttons and axes available on N64 and GC controllers.
 
-It does NOT allow interacting with the Memory Pak on N64 controllers nor driving the vibration motors available on GC controllers. I'm not interested in these feature, but if you are, please open an Issue saying so. If many people ask, I will look into them.
+It does NOT allow interacting with the Memory Pak on N64 controllers nor driving the vibration motors available on GC controllers. I'm not interested in these features, but if you are, please open an Issue saying so. If many people ask, I will look into them.
 
 ## Using the Library
 The N64/GC protocol only uses a single data pin, which is driven in an open-collector fashion.
 
-The N64 protocol is so fast that the only reliable way to decode it on a 16 MHz Arduino is using interrupts. The library supports both *external* interrupts (i.e.: INT0, INT1, etc.) and *pin-change* interrupts (PCINT0, PCINT1, etc.), so you can use almost any pin. The biggest drawback is that you must choose your pin at compile time. This can be done in the [pinconfig.h file](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/pinconfig.h). By default, it will use pin 2 on an Arduino Uno and pin 3 on a Leonardo.
+The N64 protocol is so fast that the only reliable way to decode it on a 16 MHz Arduino is using interrupts and an ISR written in assembly language. The library supports both *external* interrupts (i.e.: INT0, INT1, etc.) and *pin-change* interrupts (PCINT0, PCINT1, etc.), so you can use almost any pin. The biggest drawback is that you must choose your pin at compile time. This can be done in the [pinconfig.h file](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/pinconfig.h). By default, it will use pin 2 on an Arduino Uno and pin 3 on a Leonardo. (On a side note, I have tried to get rid of this restriction, I succeeded for the C part but I never managed to make the assembly part fast enough, with PCINTs; feel free to try and submit a Pull Request though :)).
 
 On the Leonardo, the library will also use Timer1, since it needs to disable the Timer0 interrupt (the one used by `millis()`) while it's talking with the controller for reliability reasons.
 
@@ -24,19 +24,22 @@ Among the examples, there is one which will turn any N64/GC controller into a US
 ## Wiring the Controller
 N64/GC controllers all work at 3.3V. They don't seem to require much current (if someone has exact figures, please provide them) so they will be happy with power from the Uno onboard 3.3V regulator, which is known to only be able to provide about 50mA.
 
-GC controllers also have a 5V pin, but that seems to only be used to power the rumble motors. Since this library doesn't currently support them, it can be left unconnected.
-
 You will NOT need any level translator for the data pin. This is because the pin is driven in an open-collector fashion, which never puts voltage on the line but lets a pull-up resistor do the job. Controllers seem to have this pull-up resistor internally, but you might want/need to add an external one, say 1-10k (I'd start with 2.2k since the line must rise quickly). Wire it to 3.3V of course.
 
-![GameCube Pinout](extras/GameCubeControllerPinout.jpg)
+### Nintendo 64
 ![N64 Pinout](extras/N64ControllerPinout.jpg)
+
+### GameCube
+![GameCube Pinout](extras/GameCubeControllerPinout.jpg)
+
+NOTE: The 5V pin on GC controllers seems to only be used to power the rumble motors. Since this library doesn't currently support them, it can be left unconnected.
 
 ## Compatibility List
 N64PadForArduino was primarily tested with official Nintendo controllers, but it aims to be compatible with all devices. If you find one that doesn't work, please open an issue and I'll do my best to add support for it.
 
+Regarding Arduino boards, it was tested on the Uno and Leonardo. Other AVR-based boards (Mega?) should work, but the library might need some tailoring regarding interrupt setup.
 
-## Debugging
-If you have problems, uncomment the `DUMP_COMMS` #define in [N64PadForArduino.h](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/N64PadForArduino.h#L33) and watch your serial monitor.
+It will NOT work on the ESP8266 and ESP32, as the ISR is written in assembly. Those CPUs are faster though, and might be got to work without using interrupts.
 
 ## Releases
 If you want to use this library, you are recommended to get [the latest release](https://github.com/SukkoPera/N64PadForArduino/releases) rather than the current git version, as the latter might be under development and is not guaranteed to be working.
