@@ -1,4 +1,7 @@
 # N64PadForArduino - Nintendo 64/GameCube controller interface library for Arduino
+
+[![arduino/arduino-lint-action](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/main.yml/badge.svg)](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/main.yml)
+
 N64PadForArduino is an Arduino library that allows interfacing controllers designed for the Nintendo 64 and GameCube with Arduino boards.
 
 The N64/GC controller protocol is pretty fast, as every bit is 4 microseconds long. Consequently, "slow" CPUs have a hard time decoding it. There are a few code samples out there but they are unreliable, so I set to write the one library to rule them all.
