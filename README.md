@@ -22,7 +22,7 @@ The API has a few rough edges and is not guaranteed to be stable, but any change
 Among the examples, there is one which will turn any N64/GC controller into a USB one simply by using an Arduino Leonardo or Micro. It is an excellent way to make a cheap adapter and to test the controller and library.
 
 ## Wiring the Controller
-N64/GC controllers all work at 3.3V. They don't seem to require much current (if someone has exact figures, please provide them) so they will be happy with power from the Uno onboard 3.3V regulator, which is known to only be able to provide about 50mA.
+N64/GC controllers all work at 3.3V. They don't seem to require much current (if someone has exact figures, please provide them) so they will be happy being powered from the Uno onboard 3.3V regulator, which is known to only be able to provide about 50mA.
 
 You will NOT need any level translator for the data pin. This is because the pin is driven in an open-collector fashion, which never puts voltage on the line but lets a pull-up resistor do the job. Controllers seem to have this pull-up resistor internally, but you might want/need to add an external one, say 1-10k (I'd start with 2.2k since the line must rise quickly). Wire it to 3.3V of course.
 
