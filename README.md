@@ -1,8 +1,9 @@
 # N64PadForArduino - Nintendo 64/GameCube controller interface library for Arduino
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/SukkoPera/N64PadForArduino)
+![Hits](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Fgithub.com%2FSukkoPera%2FN64PadForArduino)
 [![arduino/arduino-lint-action](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/main.yml/badge.svg)](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/main.yml)
 [![Arduino_CI](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/arduino_ci.yml/badge.svg)](https://github.com/SukkoPera/N64PadForArduino/actions/workflows/arduino_ci.yml)
-![Hits](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https%3A%2F%2Fgithub.com%2FSukkoPera%2FN64PadForArduino)
 
 N64PadForArduino is an Arduino library that allows interfacing controllers designed for the Nintendo 64 and GameCube with Arduino boards.
 
