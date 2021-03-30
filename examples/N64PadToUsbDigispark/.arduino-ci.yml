@@ -1,0 +1,3 @@
+compile:
+  platforms:
+    # Just skip, as Digispark is not available in Arduino_CI
