@@ -48,7 +48,9 @@ N64PadForArduino was primarily tested with official Nintendo controllers, but it
 
 Regarding Arduino boards, it was tested on the Uno, Leonardo and Mega. Other AVR-based boards should work, but the library might need some tailoring regarding interrupt setup. As far as clock speeds are concerned, all tests were done at 16 MHz but the library is written in a way that only depends *slightly* on this exact speed. Actually, the faster, the better, so it should be easy to get it working fine at 20 MHz, for instance. It *might* also work at 8 MHz, too, but this again was not tested (and I actually doubt that, to be honest). Probably the only required change is [adding/removing some of these `nop`s](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/int0.S#L49) to make sure that the subsequent `sbic` instruction falls right in the meaningful part of the bit (that is between 1 and 3 us since the interrupt occurred).
 
-It will NOT work on the ESP8266 and ESP32, as the ISR is written in assembly.
+While it is not a supported board, the library was also tested successfully on the Digispark, and an ATtinyX5 configuration is included.
+
+It will NOT work on the ESP8266, ESP32, nor STM32 as the ISR is written in AVR assembly.
 
 ## Releases
 If you want to use this library, you are recommended to get [the latest release](https://github.com/SukkoPera/N64PadForArduino/releases) rather than the current git version, as the latter might be under development and is not guaranteed to be working.
