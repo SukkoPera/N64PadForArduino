@@ -23,11 +23,7 @@
  *
  * For details on the Digispark, see http://digistump.com/products/1.
  *
- * NOTE: This does not currently seem 100% reliable, as it has occasional
- * hiccups. I'm not sure why, it might be due to the Digispark core being a bit
- * outdated or maybe the software USB stack interferes with the library. I don't
- * know but well, ATtiny85 is not a supported platform anyway, take this as a
- * gift ;).
+ * Please use this core these days: https://github.com/ArminJo/DigistumpArduino.
  */
 
 #include <N64Pad.h>

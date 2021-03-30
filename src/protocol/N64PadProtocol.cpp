@@ -29,7 +29,7 @@
  *
  * All defaults have been tested with Arduino 1.8.12.
  */
-#if defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__)
+#if defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
 // This can be enabled, but does not seem necessary
 //~ #define DISABLE_USART
 //~ #define DISABLE_MILLIS
@@ -41,6 +41,9 @@
 // Don't touch this
 #include "usbpause.h"
 UsbPause usbMagic;
+#elif defined (ARDUINO_AVR_DIGISPARK)
+// This is necessary on the Digispark, which uses a software USB implementation
+#define DISABLE_USB_INTERRUPTS
 #endif
 
 
@@ -215,7 +218,15 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 #endif
 
 #ifdef DISABLE_USB_INTERRUPTS
+#ifdef ARDUINO_AVR_DIGISPARK
+	/* The Digispark USB implementation is software-based and uses a Pin-Change
+	 * Interrupt
+	 */
+	register byte oldGIMSK = GIMSK;
+	GIMSK &= ~(1 << PCIE);
+#else
 	usbMagic.pause ();
+#endif
 #endif
 
 #ifdef DISABLE_MILLIS
@@ -248,7 +259,11 @@ boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *
 
 	// Reenable things happening in background
 #ifdef DISABLE_USB_INTERRUPTS
+#ifdef ARDUINO_AVR_DIGISPARK
+	GIMSK = oldGIMSK;
+#else
 	usbMagic.resume ();
+#endif
 #endif
 
 #ifdef DISABLE_USART
