@@ -3,3 +3,10 @@ compile:
     - uno
     - leonardo
     - mega2560
+
+examples:
+  exclude_dirs:
+    - N64PadToUsbDigispark
+    - N64PadToUSB
+    - GCPadToUSB
+    
