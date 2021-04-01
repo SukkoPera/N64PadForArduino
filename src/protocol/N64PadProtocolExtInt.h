@@ -22,40 +22,78 @@
 #include <Arduino.h>
 #include <DigitalIO.h>
 #include "N64PadProtocol.h"
+#include "pinconfig.h"
+#include "N64Options.h"
 
 //~ #define HAVE_EXTERNAL_PULLUPS
 
+extern byte isrBuf[8];
+static volatile byte *curByte = &GPIOR2;
+static volatile byte *curBit = &GPIOR1;
+
 template <byte PIN_DATA>
 class N64PadProtocolExtInt: public N64PadProtocol {
-private:
-	DigitalPin<PIN_DATA> data;
-	
 public:
-	virtual void begin () {
+	virtual void begin () override {
 		// Start as INPUT, i.e. Hi-Z, with pull-up enabled, i.e.: HIGH
 #ifdef HAVE_EXTERNAL_PULLUPS
-		fastPinMode (pinNumber, INPUT);
+		fastPinMode (PIN_DATA, INPUT);
 #else
-		fastPinMode (pinNumber, INPUT_PULLUP);
+		fastPinMode (PIN_DATA, INPUT_PULLUP);
 #endif
+
+		// Prepare interrupts: INT0 is triggered by pin 2 FALLING
+		noInterrupts ();
+		prepareInterrupt ();
+		interrupts ();
+		// Do not enable interrupt here!
 	}
 
-	//~ virtual void startTimer () {
-	//~ }
-	
-	//~ // Needs to be public as called from ISR
-	//~ virtual void stopTimer () {
+	//~ inline operator bool () const __attribute__((always_inline)) {
+		//~ return fastDigitalRead (PIN_DATA);
 	//~ }
 
-	virtual void sendLow () {
+	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override {
+		// Clear incoming buffer
+		for (byte i = 0; i < repsz; i++)
+			isrBuf[i] = 0;
+
+		// Prepare things for the INT0 ISR
+		*curBit = 8;
+		*curByte = 0;
+
+		unsigned long start = micros ();
+
+		// We can send the command now
+		sendCmd (cmdbuf, cmdsz);
+
+		// Enable interrupt handling - QUICK!!!
+		enableInterrupt ();
+
+		// OK, just wait for the reply buffer to fill at last
+		while (*curByte < repsz	&& micros () - start <= N64_COMMAND_TIMEOUT)
+			;
+
+		// Done, ISRs are no longer needed
+		disableInterrupt ();
+			
+		memcpy (repbuf, isrBuf, *curByte);
+
+		return *curByte == repsz;
+	}
+
+protected:
+	inline __attribute__((always_inline))
+	virtual void sendLow () override final {
 		// Bring down the line!
 #ifndef HAVE_EXTERNAL_PULLUPS
-		fastDigitalWrite (pinNumber, LOW);		// Disable pull-up
+		fastDigitalWrite (PIN_DATA, LOW);		// Disable pull-up
 #endif
-		fastPinMode (pinNumber, OUTPUT);		// Implicitly low
+		fastPinMode (PIN_DATA, OUTPUT);		// Implicitly low
 	}
 
-	virtual void sendHigh () {
+	inline __attribute__((always_inline))
+	virtual void sendHigh () override final {
 		/* Stop driving the line and let the pull-up resistor do the job
 		 * Here's some GOTCHA: depending on the pull-up resistor value, the line
 		 * might take quite some time  before it actually reaches a HIGH value.
@@ -63,45 +101,10 @@ public:
 		 * returns, we'd better give it some time... But not too much either :).
 		 */
 #ifdef HAVE_EXTERNAL_PULLUPS
-		fastPinMode (pinNumber, INPUT);
+		fastPinMode (PIN_DATA, INPUT);
 #else
-		fastPinMode (pinNumber, INPUT_PULLUP);
+		fastPinMode (PIN_DATA, INPUT_PULLUP);
 #endif
 		//~ delayMicroseconds (3);
 	}
-	
-	//~ inline operator bool () const __attribute__((always_inline)) {
-		//~ return fastDigitalRead (pinNumber);
-	//~ }
-
-boolean N64PadProtocol::runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz) {
-	// Clear incoming buffer
-	for (byte i = 0; i < repsz; i++)
-		repbuf2[i] = 0;
-
-	// Prepare things for the INT0 ISR
-	*curBit = 8;
-	*curByte = 0;
-
-	unsigned long start = micros ();
-
-	// We can send the command now
-	sendCmd (cmdbuf, cmdsz);
-
-	// Enable interrupt handling - QUICK!!!
-	enableInterrupt ();
-
-	// OK, just wait for the reply buffer to fill at last
-	while (*curByte < repsz	&& micros () - start <= COMMAND_TIMEOUT)
-		;
-
-	// Done, ISRs are no longer needed
-	disableInterrupt ();
-		
-	// FIXME
-	memcpy (repbuf, repbuf2, *curByte);
-
-	return *curByte == repsz;
-}
-
 };

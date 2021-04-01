@@ -22,14 +22,29 @@
 #include <Arduino.h>
 #include "N64PadProtocolExtInt.h"
 
-// Global, as this will be accessed by the Timer1 ISR
-static volatile boolean timeout = false;
+#include "usbpause.h"
+extern UsbPause usbMagic;
+
+extern volatile boolean timeout;
+
+inline void startTimer () {
+	timeout = false;
+	TCNT1 = 0;								// counter = 0
+	TIFR1 |= (1 << OCF1A);					// Clear pending interrupt, if any
+	TIMSK1 |= (1 << OCIE1A);				// Trigger ISR on output Compare Match A
+}
+
+inline void stopTimer () {
+	timeout = true;
+	TIMSK1 &= ~(1 << OCIE1A);				// Do not retrigger
+}
 
 template <byte PIN_DATA>
 class N64PadProtocolExtIntLeo: public N64PadProtocolExtInt<PIN_DATA> {
-
 public:
 	virtual void begin () {
+		N64PadProtocolExtInt<PIN_DATA>::begin ();
+		
 		/* Since we'll disable the timer interrupt while we are polling the
 		 * controller, we need some other way to trigger a read timeout, let's
 		 * use Timer1
@@ -41,9 +56,9 @@ public:
 		OCR1A = 4799;					// 16000000/((4799+1)*1) => 3333Hz/300us
 	}
 
-	boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, byte repsz) {
+	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override {
 		for (byte i = 0; i < repsz; i++)
-			repbuf2[i] = 0;
+			isrBuf[i] = 0;
 
 		// Prepare things for the INT0 ISR
 		*curBit = 8;
@@ -70,7 +85,7 @@ public:
 		startTimer ();
 
 		// We can send the command now
-		sendCmd (cmdbuf, cmdsz);
+		this -> sendCmd (cmdbuf, cmdsz);
 
 		// Enable interrupt handling - QUICK!!!
 		enableInterrupt ();
@@ -88,28 +103,9 @@ public:
 		TIMSK0 = oldTIMSK0;
 		usbMagic.resume ();
 
-			
-		// FIXME
-		memcpy (repbuf, repbuf2, *curByte);
+		memcpy (repbuf, isrBuf, *curByte);
 
 		return *curByte == repsz;
 	}
-	
-	inline void startTimer () {
-		timeout = false;
-		TCNT1 = 0;								// counter = 0
-		TIFR1 |= (1 << OCF1A);					// Clear pending interrupt, if any
-		TIMSK1 |= (1 << OCIE1A);				// Trigger ISR on output Compare Match A
-	}
-
-	inline void stopTimer () {
-		timeout = true;
-		TIMSK1 &= ~(1 << OCIE1A);					// Do not retrigger
-	}
 };
 
-// Timer1 ISR
-ISR (TIMER1_COMPA_vect) {
-	// FIXME
-	N64PadProtocol::stopTimer ();
-}

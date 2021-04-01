@@ -30,6 +30,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once
+
 #include <Arduino.h>
 
 #ifdef __AVR_ATmega32U4__

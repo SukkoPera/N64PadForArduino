@@ -17,7 +17,7 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
-#include "protocol/N64PadProtocol.h"
+#include "protocol/N64PadProtocolExtIntLeo.h"
 
 class N64Pad {
 public:
@@ -69,7 +69,8 @@ public:
 	boolean read ();
 
 private:
-	N64PadProtocol proto;
+	//~ N64PadProtocol proto;
+	N64PadProtocolExtIntLeo<3> proto;
 	
 	enum ProtoCommand {
 		CMD_IDENTIFY = 0,

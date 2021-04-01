@@ -22,7 +22,7 @@
 
 .section .text
 
-.extern repbuf2
+.extern isrBuf
 
 .global N64PAD_INT_VECTOR
 
@@ -65,8 +65,8 @@ N64PAD_INT_VECTOR:
 
     ; Current byte is done
     out     REG_CURBIT, ZL
-    ldi     ZL, lo8 (repbuf2)
-    ldi     ZH, hi8 (repbuf2)
+    ldi     ZL, lo8 (isrBuf)
+    ldi     ZH, hi8 (isrBuf)
     in      r24, REG_CURBYTE
     add     ZL, r24
     inc     r24                     ; Byte count += 1

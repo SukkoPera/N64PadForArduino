@@ -21,6 +21,8 @@
 
 #if defined (__AVR_ATtiny25__) || defined (__AVR_ATtiny45__) || defined (__AVR_ATtiny85__)
 	// Pin 2, PB2, INT0 - Tested OK
+	// TODO: Make sure this works with DigitalIO
+	#define N64PAD_PIN_NUMBER 2
 	#define PAD_DIR DDRB
 	#define PAD_OUTPORT PORTB
 	#define PAD_INPORT PINB
@@ -34,6 +36,7 @@
 	// Arduino Uno, Nano, Pro Mini
 	
 	// Pin 2, INT0 - Tested OK
+	//~ #define N64PAD_PIN_NUMBER 2
 	//~ #define PAD_DIR DDRD
 	//~ #define PAD_OUTPORT PORTD
 	//~ #define PAD_INPORT PIND
@@ -45,6 +48,7 @@
 	//~ #define disableInterrupt() {EIMSK &= ~(1 << INT0);}
 	
 	// Pin 3, INT1 - Tested OK
+	#define N64PAD_PIN_NUMBER 3
 	#define PAD_DIR DDRD
 	#define PAD_OUTPORT PORTD
 	#define PAD_INPORT PIND
@@ -58,6 +62,7 @@
 	// Arduino Leonardo, Micro
 	
 	// Pin 3, PD0, INT0 - Tested OK
+	#define N64PAD_PIN_NUMBER 3
 	#define PAD_DIR DDRD
 	#define PAD_OUTPORT PORTD
 	#define PAD_INPORT PIND
@@ -69,6 +74,7 @@
 	#define disableInterrupt() {EIMSK &= ~(1 << INT0);}
 
 	// Pin 8, PB4, PCINT4 - Tested OK
+	//~ #define N64PAD_PIN_NUMBER 8
 	//~ #define PAD_DIR DDRB
 	//~ #define PAD_OUTPORT PORTB
 	//~ #define PAD_INPORT PINB
@@ -83,6 +89,7 @@
 	// Arduino Mega
 	
 	// Pin 3, PE5, INT5 - Tested OK
+	#define N64PAD_PIN_NUMBER 3
 	#define PAD_DIR DDRE
 	#define PAD_OUTPORT PORTE
 	#define PAD_INPORT PINE

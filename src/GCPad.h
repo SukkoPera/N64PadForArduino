@@ -21,7 +21,17 @@
  * http://www.int03.co.uk/crema/hardware/gamecube/gc-control.html
  */
 
+#pragma once
+
 #include "protocol/N64PadProtocol.h"
+
+//~ #if defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
+	//~ #include "protocol/N64PadProtocolExtInt.h"
+	//~ typedef N64PadProtocolExtInt<N64PAD_PIN_NUMBER> N64Driver;
+//~ #elif defined (__AVR_ATmega32U4__)
+	//~ #include "protocol/N64PadProtocolExtIntLeo.h"
+	//~ typedef N64PadProtocolExtIntLeo<N64PAD_PIN_NUMBER> N64Driver;
+//~ #endif
 
 class GCPad {
 public:
@@ -90,7 +100,7 @@ public:
 	uint8_t right_trigger;
 
 	// This can also be called anytime to reset the controller
-	boolean begin ();
+	boolean begin (N64PadProtocol& proto);
 
 	/* Reads the current state of the joystick.
 	 *
@@ -99,7 +109,7 @@ public:
 	boolean read ();
 
 private:
-	N64PadProtocol proto;
+	N64PadProtocol *proto;
 	
 	// Size of a single command in bytes, seems fixed
 	static const int COMMAND_SIZE = 3;
