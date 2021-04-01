@@ -37,6 +37,8 @@ N64/GC controllers all work at 3.3V. They don't seem to require much current (if
 
 You will NOT need any level translator for the data pin. This is because the pin is driven in an open-collector fashion, which never puts voltage on the line but lets a pull-up resistor do the job. Controllers seem to have this pull-up resistor internally, but you might want/need to add an external one, say 1-10k (I'd start with 2.2k since the line must rise quickly). Wire it to 3.3V of course.
 
+It is common practice to build a cheap extension cable and cut it to get a proper plug. Note that currently you can also get cheap PCB-mount connectors for both the N64 and GC from Chinese shopping sites or from [raphnet](https://www.raphnet-tech.com/products/gc_controller_connector/index.php) in Canada.
+
 ### Nintendo 64
 ![N64 Pinout](extras/N64ControllerPinout.jpg)
 
