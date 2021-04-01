@@ -15,12 +15,14 @@ The N64/GC controller protocol is pretty fast, as every bit is 4 microseconds lo
 ## Features
 Currently, N64PadForArduino provides access to all buttons and axes available on N64 and GC controllers.
 
-It does NOT allow interacting with the Memory Pak on N64 controllers nor driving the vibration motors available on GC controllers. I'm not interested in these features, but if you are, please open an Issue saying so. If many people ask, I will look into them.
+It does NOT allow interacting with the MemoryPak on N64 controllers nor driving the vibration motors available on GC controllers. I'm not interested in these features, but if you are, please open an Issue saying so. If many people ask, I will look into them.
 
 ## Using the Library
 The N64/GC protocol only uses a single data pin, which is driven in an open-collector fashion.
 
 The N64 protocol is so fast that the only reliable way to decode it on a 16 MHz Arduino is using interrupts and an ISR written in assembly language. The library supports both *external* interrupts (i.e.: INT0, INT1, etc.) and *pin-change* interrupts (PCINT0, PCINT1, etc.), so you can use almost any pin. The biggest drawback is that you must choose your pin at compile time. This can be done in the [pinconfig.h file](https://github.com/SukkoPera/N64PadForArduino/blob/master/src/protocol/pinconfig.h). By default, it will use pin 3 on all the supported platforms (Uno/Nano/Leonardo/Mega). (On a side note, I have tried to get rid of this restriction, I succeeded for the C part but I never managed to make the assembly part fast enough, with PCINTs; feel free to try and submit a Pull Request though :)).
+
+Another restriction is that using more than one controller is next to impossible, unfortunately.
 
 On the Leonardo, the library will also use Timer1, since it needs to disable the Timer0 interrupt (the one used by `millis()`) while it's talking with the controller for reliability reasons.
 
