@@ -25,7 +25,7 @@
 #include "pinconfig.h"
 #include "N64Options.h"
 
-//~ #define HAVE_EXTERNAL_PULLUPS
+#define HAVE_EXTERNAL_PULLUPS
 
 extern byte isrBuf[8];
 static volatile byte *curByte = &GPIOR2;
@@ -84,7 +84,7 @@ public:
 
 protected:
 	inline __attribute__((always_inline))
-	virtual void sendLow () override final {
+	virtual void sendLow () override final {		// This attribute + "final" combo is what makes the whole thing inline
 		// Bring down the line!
 #ifndef HAVE_EXTERNAL_PULLUPS
 		fastDigitalWrite (PIN_DATA, LOW);		// Disable pull-up
