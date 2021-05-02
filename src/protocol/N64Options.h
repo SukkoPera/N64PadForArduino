@@ -20,11 +20,14 @@
 #pragma once
 
 /* A read will be considered failed if it hasn't completed within this amount of
- * microseconds. The N64/GC protocol takes 4us per bit. The longest command
- * reply we support is GC's poll command which returns 8 bytes, so this must be
- * at least 8 * 8 * 4 = 256 us plus some margin. Note that this is only used
- * when DISABLE_MILLIS is NOT defined, when it is a hw timer is used, which is
- * initialized in begin(), so if you change this make sure to tune the value
- * there accordingly, too.
+ * microseconds. The N64/GC protocol takes 4 us per bit. The longest command
+ * reply we support is GC's poll command which returns 8 bytes. The timer is
+ * started before the command is sent (to save time), so this must account for
+ * that, too (3 bytes on GC at worst). Thus this must be at least
+ * (8 + 3) * 8 * 4 = 352 us plus some margin. Taking into account time for the
+ * CPU to jump and return for functions, it seems that 500 is a good value.
+ * Note that this is only used when DISABLE_MILLIS is NOT defined, when it is a
+ * hw timer is used, which is initialized in begin(), so if you change this make
+ * sure to tune the value there accordingly, too.
  */
-const unsigned long N64_COMMAND_TIMEOUT = 300UL;
+const unsigned long N64_COMMAND_TIMEOUT = 500UL;

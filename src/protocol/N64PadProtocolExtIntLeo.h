@@ -53,7 +53,7 @@ public:
 		TCCR1B = 0;
 		TCCR1B |= (1 << WGM12);			// Clear Timer on Compare (CTC)
 		TCCR1B |= (1 << CS10);			// Prescaler = 1
-		OCR1A = 4799;					// 16000000/((4799+1)*1) => 3333Hz/300us
+		OCR1A = 7999;					// 16000000/((7999+1)*1) => 2000Hz/200us
 	}
 
 	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override {
@@ -70,7 +70,7 @@ public:
 		 * First, we disable the millis() timer...
 		 */
 		noInterrupts ();
-		byte oldTIMSK0 = TIMSK0;
+		const byte oldTIMSK0 = TIMSK0;
 		TIMSK0 &= ~((1 << OCIE0B) | (1 << OCIE0A) | (1 << TOIE0));
 		TIFR0 |= (1 << OCF0B) | (1 << OCF0A) | (1 << TOV0);
 		interrupts ();
@@ -108,4 +108,3 @@ public:
 		return *curByte == repsz;
 	}
 };
-
