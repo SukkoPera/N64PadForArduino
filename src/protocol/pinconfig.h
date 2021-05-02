@@ -61,6 +61,18 @@
 #elif defined (__AVR_ATmega32U4__)
 	// Arduino Leonardo, Micro
 	
+	// Pin 2, PD1, INT1 - Tested OK
+	//~ #define N64PAD_PIN_NUMBER 2
+	//~ #define PAD_DIR DDRD
+	//~ #define PAD_OUTPORT PORTD
+	//~ #define PAD_INPORT PIND
+	//~ #define PAD_BIT PD1
+	//~ #define N64PAD_USE_INTX
+	//~ #define N64PAD_INT_VECTOR INT1_vect
+	//~ #define prepareInterrupt() {EICRA |= (1 << ISC11); EICRA &= ~(1 << ISC10);}
+	//~ #define enableInterrupt() {EIFR |= (1 << INTF1); EIMSK |= (1 << INT1);}
+	//~ #define disableInterrupt() {EIMSK &= ~(1 << INT1);}
+	
 	// Pin 3, PD0, INT0 - Tested OK
 	#define N64PAD_PIN_NUMBER 3
 	#define PAD_DIR DDRD
