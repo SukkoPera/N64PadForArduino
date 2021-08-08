@@ -19,32 +19,39 @@
 
 #pragma once
 
+#ifndef N64_CUSTOM_INTMAN
+#include "pinconfig.h"
+#endif
+
 #include <Arduino.h>
 #include <DigitalIO.h>
 #include "N64PadProtocol.h"
-#include "pinconfig.h"
+#include "N64InterruptManager.h"
 #include "N64Options.h"
 
-#define HAVE_EXTERNAL_PULLUPS
+
+#define N64P4A_HAVE_EXTERNAL_PULLUPS
 
 extern byte isrBuf[8];
 static volatile byte *curByte = &GPIOR2;
 static volatile byte *curBit = &GPIOR1;
 
-template <byte PIN_DATA>
+template <byte PIN_DATA, typename INTMAN>
 class N64PadProtocolExtInt: public N64PadProtocol {
 public:
-	virtual void begin () override {
+	virtual void begin () {
+		N64PadProtocol::begin ();
+		
 		// Start as INPUT, i.e. Hi-Z, with pull-up enabled, i.e.: HIGH
-#ifdef HAVE_EXTERNAL_PULLUPS
+#ifdef N64P4A_HAVE_EXTERNAL_PULLUPS
 		fastPinMode (PIN_DATA, INPUT);
 #else
 		fastPinMode (PIN_DATA, INPUT_PULLUP);
 #endif
 
-		// Prepare interrupts: INT0 is triggered by pin 2 FALLING
+		// Prepare interrupts
 		noInterrupts ();
-		prepareInterrupt ();
+		this -> intMan.prepareInterrupt ();
 		interrupts ();
 		// Do not enable interrupt here!
 	}
@@ -58,7 +65,7 @@ public:
 		for (byte i = 0; i < repsz; i++)
 			isrBuf[i] = 0;
 
-		// Prepare things for the INT0 ISR
+		// Prepare things for the ISR
 		*curBit = 8;
 		*curByte = 0;
 
@@ -68,14 +75,14 @@ public:
 		sendCmd (cmdbuf, cmdsz);
 
 		// Enable interrupt handling - QUICK!!!
-		enableInterrupt ();
+		this -> intMan.enableInterrupt ();
 
 		// OK, just wait for the reply buffer to fill at last
 		while (*curByte < repsz	&& micros () - start <= N64_COMMAND_TIMEOUT)
 			;
 
-		// Done, ISRs are no longer needed
-		disableInterrupt ();
+		// Done, ISR is no longer needed
+		this -> intMan.disableInterrupt ();
 			
 		memcpy (repbuf, isrBuf, *curByte);
 
@@ -83,10 +90,12 @@ public:
 	}
 
 protected:
+	INTMAN intMan;
+	
 	inline __attribute__((always_inline))
 	virtual void sendLow () override final {		// This attribute + "final" combo is what makes the whole thing inline
 		// Bring down the line!
-#ifndef HAVE_EXTERNAL_PULLUPS
+#ifndef N64P4A_HAVE_EXTERNAL_PULLUPS
 		fastDigitalWrite (PIN_DATA, LOW);		// Disable pull-up
 #endif
 		fastPinMode (PIN_DATA, OUTPUT);		// Implicitly low
@@ -100,11 +109,12 @@ protected:
 		 * Since code might rely on the line already being high when this method
 		 * returns, we'd better give it some time... But not too much either :).
 		 */
-#ifdef HAVE_EXTERNAL_PULLUPS
+#ifdef N64P4A_HAVE_EXTERNAL_PULLUPS
 		fastPinMode (PIN_DATA, INPUT);
 #else
 		fastPinMode (PIN_DATA, INPUT_PULLUP);
 #endif
-		//~ delayMicroseconds (3);
+		//~ while (!fastDigitalRead (PIN_DATA))
+			//~ ;
 	}
 };

@@ -39,11 +39,11 @@ inline void stopTimer () {
 	TIMSK1 &= ~(1 << OCIE1A);				// Do not retrigger
 }
 
-template <byte PIN_DATA>
-class N64PadProtocolExtIntLeo: public N64PadProtocolExtInt<PIN_DATA> {
+template <byte PIN_DATA, typename INTMAN>
+class N64PadProtocolExtIntLeo: public N64PadProtocolExtInt<PIN_DATA, INTMAN> {
 public:
 	virtual void begin () {
-		N64PadProtocolExtInt<PIN_DATA>::begin ();
+		N64PadProtocolExtInt<PIN_DATA, INTMAN>::begin ();
 		
 		/* Since we'll disable the timer interrupt while we are polling the
 		 * controller, we need some other way to trigger a read timeout, let's
@@ -56,11 +56,11 @@ public:
 		OCR1A = 7999;					// 16000000/((7999+1)*1) => 2000Hz/200us
 	}
 
-	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override {
+	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override final {
 		for (byte i = 0; i < repsz; i++)
 			isrBuf[i] = 0;
 
-		// Prepare things for the INT0 ISR
+		// Prepare things for the ISR
 		*curBit = 8;
 		*curByte = 0;
 
@@ -88,7 +88,7 @@ public:
 		this -> sendCmd (cmdbuf, cmdsz);
 
 		// Enable interrupt handling - QUICK!!!
-		enableInterrupt ();
+		this -> intMan.enableInterrupt ();
 
 		// OK, just wait for the reply buffer to fill at last
 		while (*curByte < repsz && !timeout)
@@ -97,7 +97,7 @@ public:
 		// Done, ISRs are no longer needed
 		stopTimer ();			// Even if it already happened, it won't hurt
 		
-		disableInterrupt ();
+		this -> intMan.disableInterrupt ();
 
 		// Reenable things happening in background
 		TIMSK0 = oldTIMSK0;

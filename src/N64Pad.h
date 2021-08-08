@@ -17,7 +17,10 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
-#include "protocol/N64PadProtocolExtIntLeo.h"
+#pragma once
+
+#include "protocol/N64PadProtocol.h"
+
 
 class N64Pad {
 public:
@@ -60,7 +63,7 @@ public:
 	int8_t y;
 
 	// This can also be called anytime to reset the controller
-	boolean begin ();
+	boolean begin (N64PadProtocol& proto);
 
 	/* Reads the current state of the joystick.
 	 *
@@ -69,8 +72,7 @@ public:
 	boolean read ();
 
 private:
-	//~ N64PadProtocol proto;
-	N64PadProtocolExtIntLeo<3> proto;
+	N64PadProtocol *proto;
 	
 	enum ProtoCommand {
 		CMD_IDENTIFY = 0,

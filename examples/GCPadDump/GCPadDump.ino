@@ -51,71 +51,103 @@
  * to work, I had to connect pin 4, it didn't work with pin 3 only!
  */
 
+//~ #include <protocol/pinconfig.h>
 #include <GCPad.h>
 
+#if defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
+	#include <protocol/N64PadProtocolExtInt.h>
+	typedef N64PadProtocolExtInt<N64PAD_PIN_NUMBER, DefaultInterruptManager> N64Driver;
+#elif defined (__AVR_ATmega32U4__)
+	#include <protocol/N64PadProtocolExtIntLeo.h>
+	typedef N64PadProtocolExtIntLeo<N64PAD_PIN_NUMBER, DefaultInterruptManager> N64Driver;
+#endif
+
+N64Driver driver;
 GCPad pad;
 
 void setup () {
 	Serial.begin (115200);
-
-	Serial.println ("Probing for pad...");
-	if (pad.begin ()) {
-		Serial.println ("Pad detected");
-	}
-	delay (500);
+	while (!Serial)
+		;
 
 	pinMode (LED_BUILTIN, OUTPUT);
+
+	driver.begin ();
+
+	Serial.println ("Ready!");
 }
 
 
 void loop () {
-	pad.read ();
+	static boolean haveController = false;
+	static uint16_t oldButtons = 0;
+	static int8_t oldX = 0, oldY = 0;
 
-	digitalWrite (LED_BUILTIN, pad.buttons != 0);
+	if (!haveController) {
+		if (pad.begin (driver)) {
+			// Controller detected!
+			digitalWrite (LED_BUILTIN, HIGH);
+			Serial.println (F("Controller found!"));
+			haveController = true;
+		} else {
+			delay (333);
+		}
+	} else {
+		if (!pad.read ()) {
+			// Controller lost :(
+			digitalWrite (LED_BUILTIN, LOW);
+			Serial.println (F("Controller lost :("));
+			haveController = false;
+		} else {
+			if (pad.buttons != oldButtons || pad.x != oldX || pad.y != oldY) {
+				Serial.print ("Pressed: ");
+				if (pad.buttons & GCPad::BTN_A)
+					Serial.print ("A ");
+				if (pad.buttons & GCPad::BTN_B)
+					Serial.print ("B ");
+				if (pad.buttons & GCPad::BTN_X)
+					Serial.print ("X ");
+				if (pad.buttons & GCPad::BTN_Y)
+					Serial.print ("Y ");
+				if (pad.buttons & GCPad::BTN_Z)
+					Serial.print ("Z ");
+				if (pad.buttons & GCPad::BTN_START)
+					Serial.print ("Start ");
+				if (pad.buttons & GCPad::BTN_D_UP)
+					Serial.print ("Up ");
+				if (pad.buttons & GCPad::BTN_D_DOWN)
+					Serial.print ("Down ");
+				if (pad.buttons & GCPad::BTN_D_LEFT)
+					Serial.print ("Left ");
+				if (pad.buttons & GCPad::BTN_D_RIGHT)
+					Serial.print ("Right ");
+				if (pad.buttons & GCPad::BTN_L)
+					Serial.print ("L ");
+				if (pad.buttons & GCPad::BTN_R)
+					Serial.print ("R ");
+				Serial.println ("");
 
-	Serial.print ("Pressed: ");
-	if (pad.buttons & GCPad::BTN_A)
-		Serial.print ("A ");
-	if (pad.buttons & GCPad::BTN_B)
-		Serial.print ("B ");
-	if (pad.buttons & GCPad::BTN_X)
-		Serial.print ("X ");
-	if (pad.buttons & GCPad::BTN_Y)
-		Serial.print ("Y ");
-	if (pad.buttons & GCPad::BTN_Z)
-		Serial.print ("Z ");
-	if (pad.buttons & GCPad::BTN_START)
-		Serial.print ("Start ");
-	if (pad.buttons & GCPad::BTN_D_UP)
-		Serial.print ("Up ");
-	if (pad.buttons & GCPad::BTN_D_DOWN)
-		Serial.print ("Down ");
-	if (pad.buttons & GCPad::BTN_D_LEFT)
-		Serial.print ("Left ");
-	if (pad.buttons & GCPad::BTN_D_RIGHT)
-		Serial.print ("Right ");
-	if (pad.buttons & GCPad::BTN_L)
-		Serial.print ("L ");
-	if (pad.buttons & GCPad::BTN_R)
-		Serial.print ("R ");
-	Serial.println ("");
+				Serial.print ("X = ");
+				Serial.println (pad.x);
+				Serial.print ("Y = ");
+				Serial.println (pad.y);
+				
+				Serial.print ("C-Stick X = ");
+				Serial.println (pad.c_x);
+				Serial.print ("C-Stick Y = ");
+				Serial.println (pad.c_y);
+				
+				Serial.print ("Left Trigger = ");
+				Serial.println (pad.left_trigger);
+				Serial.print ("Right Trigger = ");
+				Serial.println (pad.right_trigger);
+				
+				Serial.println ("");
 
-	Serial.print ("X = ");
-	Serial.println (pad.x);
-	Serial.print ("Y = ");
-	Serial.println (pad.y);
-	
-	Serial.print ("C-Stick X = ");
-	Serial.println (pad.c_x);
-	Serial.print ("C-Stick Y = ");
-	Serial.println (pad.c_y);
-	
-	Serial.print ("Left Trigger = ");
-	Serial.println (pad.left_trigger);
-	Serial.print ("Right Trigger = ");
-	Serial.println (pad.right_trigger);
-	
-	Serial.println ("");
-	
-	delay (1000);
+				oldButtons = pad.buttons;
+				oldX = pad.x;
+				oldY = pad.y;
+			}
+		}
+	}
 }

@@ -47,12 +47,25 @@
 
 #include <N64Pad.h>
 
+#if defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
+	#include "N64Pad/protocol/N64PadProtocolExtInt.h"
+	typedef N64PadProtocolExtInt<N64PAD_PIN_NUMBER> N64Driver;
+#elif defined (__AVR_ATmega32U4__)
+	#include <protocol/N64PadProtocolExtIntLeo.h>
+	typedef N64PadProtocolExtIntLeo<N64PAD_PIN_NUMBER> N64Driver;
+#endif
+
+N64Driver driver;
 N64Pad pad;
 
 void setup () {
 	Serial.begin (115200);
 	while (!Serial)
 		;
+
+	pinMode (LED_BUILTIN, OUTPUT);
+
+	driver.begin ();
 
 	Serial.println ("Ready!");
 }
@@ -64,7 +77,7 @@ void loop () {
 	static int8_t oldX = 0, oldY = 0;
 
 	if (!haveController) {
-		if (pad.begin ()) {
+		if (pad.begin (driver)) {
 			// Controller detected!
 			digitalWrite (LED_BUILTIN, HIGH);
 			Serial.println (F("Controller found!"));

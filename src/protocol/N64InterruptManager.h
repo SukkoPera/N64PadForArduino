@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of N64Pad for Arduino.                                    *
  *                                                                             *
- * Copyright (C) 2015 by SukkoPera                                             *
+ * Copyright (C) 2015-2021 by SukkoPera                                        *
  *                                                                             *
  * N64Pad is free software: you can redistribute it and/or modify              *
  * it under the terms of the GNU General Public License as published by        *
@@ -17,64 +17,34 @@
  * along with N64Pad. If not, see <http://www.gnu.org/licenses/>.              *
  ******************************************************************************/
 
-#include "GCPad.h"
+#pragma once
 
-/* These must follow the order from ProtoCommand, first byte is expected length
- * of reply
- */
-const byte GCPad::protoCommands[CMD_NUMBER][COMMAND_SIZE + 1] = {
-	// CMD_POLL - Buffer size required: 8 bytes
-	{8, 0x40, 0x03, 0x02},
-
-	// CMD_RUMBLE_ON - Do we even have a reply?
-	{1, 0x40, 0x00, 0x01},
-
-	// CMD_RUMBLE_OFF - Ditto
-	{1, 0x40, 0x00, 0x00}
+class InterruptManager {
+public:
+	virtual void prepareInterrupt () = 0;
+	virtual void enableInterrupt () = 0;
+	virtual void disableInterrupt () = 0;
 };
 
-boolean GCPad::begin (N64PadProtocol& _proto) {
-	proto = &_proto;
-	
-	buttons = 0;
-	x = 0;
-	y = 0;
-	c_x = 0;
-	c_y = 0;
-	left_trigger = 0;
-	right_trigger = 0;
-	
-	last_poll = 0;
 
-	return read ();
-}
+#ifndef N64_CUSTOM_INTMAN
 
-boolean GCPad::read () {
-	boolean ret = true;
-	
-	if (last_poll == 0 || millis () - last_poll >= 10) {
-		if ((ret = (runCommand (CMD_POLL) != NULL))) {
-			// The mask makes sure unused bits are 0, some seem to be always 1
-			buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
-			x = buf[2];
-			y = buf[3];
-			c_x = buf[4];
-			c_y = buf[5];
-			left_trigger = buf[6];
-			right_trigger = buf[7];
-
-			last_poll = millis ();
-		}
+class DefaultInterruptManager final: public InterruptManager {
+public:
+	inline __attribute__((always_inline))
+	virtual void prepareInterrupt() override final {
+		PREPARE_INTERRUPT ();
 	}
 
-	return ret;
-}
-
-byte *GCPad::runCommand (const ProtoCommand cmd) {
-	byte *ret = NULL;
-	if (proto -> runCommand (protoCommands[cmd] + 1, COMMAND_SIZE, buf, protoCommands[cmd][0])) {
-		ret = buf;
+	inline __attribute__((always_inline))
+	virtual void enableInterrupt () override final {
+		ENABLE_INTERRUPT ();
 	}
 
-	return ret;
-}
+	inline __attribute__((always_inline))
+	virtual void disableInterrupt () override final {
+		DISABLE_INTERRUPT ();
+	}
+};
+	
+#endif

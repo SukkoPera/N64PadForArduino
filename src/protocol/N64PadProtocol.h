@@ -97,9 +97,9 @@ private:
 	}
 
 protected:	
-	//~ inline void sendCmd (const byte *cmdbuf, const byte cmdsz);
 	// This must be implemented like this, as it cannot be too slow, or the controller won't recognize the signal
-	inline void sendCmd (const byte *cmdbuf, const byte cmdsz) {
+	inline __attribute__((always_inline))
+	void sendCmd (const byte *cmdbuf, const byte cmdsz) {
 		for (byte j = 0; j < cmdsz; j++) {
 			byte cmdbyte = cmdbuf[j];
 			for (byte i = 0; i < 8; i++) {
