@@ -111,7 +111,7 @@ void loop () {
 					Serial.print ("Y ");
 				if (pad.buttons & GCPad::BTN_Z)
 					Serial.print ("Z ");
-				if (pad.buttons & GCPad::BTN_START)
+				if (pad.buttons & (GCPad::BTN_START | GCPad::BTN_LRSTART))
 					Serial.print ("Start ");
 				if (pad.buttons & GCPad::BTN_D_UP)
 					Serial.print ("Up ");

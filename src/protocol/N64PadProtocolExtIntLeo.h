@@ -53,7 +53,7 @@ public:
 		TCCR1B = 0;
 		TCCR1B |= (1 << WGM12);			// Clear Timer on Compare (CTC)
 		TCCR1B |= (1 << CS10);			// Prescaler = 1
-		OCR1A = 7999;					// 16000000/((7999+1)*1) => 2000Hz/200us
+		OCR1A = 9999;					// 16000000/((7999+1)*1) => 2000Hz/200us
 	}
 
 	virtual boolean runCommand (const byte *cmdbuf, const byte cmdsz, byte *repbuf, const byte repsz) override final {

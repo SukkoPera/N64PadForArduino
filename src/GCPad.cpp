@@ -52,7 +52,7 @@ boolean GCPad::begin (N64PadProtocol& _proto) {
 boolean GCPad::read () {
 	boolean ret = true;
 	
-	if (last_poll == 0 || millis () - last_poll >= 10) {
+	//~ if (last_poll == 0 || millis () - last_poll >= 10) {
 		if ((ret = (runCommand (CMD_POLL) != NULL))) {
 			// The mask makes sure unused bits are 0, some seem to be always 1
 			buttons = ((((uint16_t) buf[0]) << 8) | buf[1]) & ~(0xE080);
@@ -65,7 +65,7 @@ boolean GCPad::read () {
 
 			last_poll = millis ();
 		}
-	}
+	//~ }
 
 	return ret;
 }

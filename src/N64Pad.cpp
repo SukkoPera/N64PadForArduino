@@ -59,7 +59,7 @@ boolean N64Pad::begin (N64PadProtocol& _proto) {
 boolean N64Pad::read () {
 	boolean ret = true;
 	
-	if (millis () - last_poll >= MIN_POLL_INTERVAL_MS) {
+	//~ if (millis () - last_poll >= MIN_POLL_INTERVAL_MS) {
 		if ((ret = (runCommand (CMD_POLL) != NULL))) {
 			buttons = ((((uint16_t) buf[0]) << 8) | buf[1]);
 			x = (int8_t) buf[2];
@@ -67,7 +67,7 @@ boolean N64Pad::read () {
 
 			last_poll = millis ();
 		}
-	}
+	//~ }
 
 	return ret;
 }

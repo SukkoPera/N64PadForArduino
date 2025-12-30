@@ -49,10 +49,10 @@
 
 #if defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega168__) || defined (__AVR_ATtiny88__) || defined (__AVR_ATtiny48__)
 	#include "N64Pad/protocol/N64PadProtocolExtInt.h"
-	typedef N64PadProtocolExtInt<N64PAD_PIN_NUMBER> N64Driver;
+	typedef N64PadProtocolExtInt<N64PAD_PIN_NUMBER, DefaultInterruptManager> N64Driver;
 #elif defined (__AVR_ATmega32U4__)
 	#include <protocol/N64PadProtocolExtIntLeo.h>
-	typedef N64PadProtocolExtIntLeo<N64PAD_PIN_NUMBER> N64Driver;
+	typedef N64PadProtocolExtIntLeo<N64PAD_PIN_NUMBER, DefaultInterruptManager> N64Driver;
 #endif
 
 N64Driver driver;
@@ -100,7 +100,7 @@ void loop () {
 					Serial.print ("B ");
 				if (pad.buttons & N64Pad::BTN_Z)
 					Serial.print ("Z ");
-				if (pad.buttons & N64Pad::BTN_START)
+				if (pad.buttons & (N64Pad::BTN_START | N64Pad::BTN_LRSTART))
 					Serial.print ("Start ");
 				if (pad.buttons & N64Pad::BTN_UP)
 					Serial.print ("Up ");
